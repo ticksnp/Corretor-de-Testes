@@ -242,56 +242,78 @@ FSLaudosApp.pageLogic = (() => {
             const chatInput = document.getElementById('chat-input');
             const chatSendBtn = document.getElementById('chat-send-btn');
             const messagesContainer = document.getElementById('chat-messages');
+            const newChatBtn = document.getElementById('new-chat-btn');
 
-            // [MODIFICADO] Removemos a lógica de anexos, pois o foco agora é a busca na web.
-            // A lógica de anexos pode ser reintroduzida depois, se necessário.
+            // [NOVO] Array para armazenar o histórico da conversa
+            let conversationHistory = [];
+
+            const initialMessageHtml = `
+                <div class="chat-message ai">
+                    <div class="avatar">IA</div>
+                    <div class="message-content">
+                        Olá! Sou seu assistente de IA. Como posso ajudar a analisar os dados de um teste psicológico hoje?
+                    </div>
+                </div>`;
+
+            // [NOVO] Função para iniciar uma nova conversa
+            const startNewChat = () => {
+                conversationHistory = [];
+                messagesContainer.innerHTML = initialMessageHtml;
+                chatInput.focus();
+            };
 
             const appendMessage = (sender, content) => {
+                // Adiciona a mensagem à interface visual
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('chat-message', sender);
+                
                 const avatar = document.createElement('div');
                 avatar.classList.add('avatar');
                 avatar.textContent = sender === 'user' ? 'Você' : 'IA';
+                
                 const contentDiv = document.createElement('div');
                 contentDiv.classList.add('message-content');
-                contentDiv.innerHTML = content; // Usamos innerHTML para renderizar quebras de linha
-
+                contentDiv.innerHTML = content;
+                
                 messageDiv.appendChild(avatar);
                 messageDiv.appendChild(contentDiv);
                 messagesContainer.appendChild(messageDiv);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            };
 
-            const showTypingIndicator = () => {
-                const indicatorDiv = document.createElement('div');
-                indicatorDiv.classList.add('chat-message', 'ai', 'typing-indicator-container');
-                indicatorDiv.innerHTML = `<div class="avatar">IA</div><div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
-                messagesContainer.appendChild(indicatorDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                // [MODIFICADO] Adiciona a mensagem ao histórico para a IA
+                // O Gemini espera papéis "user" e "model"
+                const role = (sender === 'user') ? 'user' : 'model';
+                conversationHistory.push({ role, parts: [{ text: content.replace(/<br>/g, '\n') }] });
             };
+            
+            // ... (funções showTypingIndicator e removeTypingIndicator permanecem as mesmas) ...
+            const showTypingIndicator = () => { /* ...código inalterado... */ };
+            const removeTypingIndicator = () => { /* ...código inalterado... */ };
 
-            const removeTypingIndicator = () => {
-                const indicator = messagesContainer.querySelector('.typing-indicator-container');
-                if (indicator) indicator.remove();
-            };
+            // [NOVO] Event listener para o botão de novo chat
+            newChatBtn.addEventListener('click', startNewChat);
 
             chatForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const userMessage = chatInput.value.trim();
                 if (!userMessage) return;
-
+                
                 appendMessage('user', userMessage);
+                const currentQuery = chatInput.value.trim(); // Guarda a pergunta atual
                 chatInput.value = '';
                 chatSendBtn.disabled = true;
 
                 showTypingIndicator();
 
                 try {
-                    // [NOVO] Esta é a chamada para o nosso back-end!
+                    // [MODIFICADO] Envia o histórico completo da conversa para o back-end
                     const response = await fetch('/.netlify/functions/chat-ia-handler', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ query: userMessage }),
+                        body: JSON.stringify({ 
+                            history: conversationHistory.slice(0, -1), // Envia todo o histórico, exceto a última pergunta do usuário
+                            query: currentQuery 
+                        }),
                     });
 
                     removeTypingIndicator();
@@ -302,7 +324,6 @@ FSLaudosApp.pageLogic = (() => {
                     }
 
                     const data = await response.json();
-                    // Converte quebras de linha do texto em tags <br> para o HTML
                     const formattedReply = data.reply.replace(/\n/g, '<br>');
                     appendMessage('ai', formattedReply);
 
@@ -314,6 +335,9 @@ FSLaudosApp.pageLogic = (() => {
                     chatInput.focus();
                 }
             });
+            
+            // Inicia o primeiro chat ao carregar a página
+            startNewChat();
         },
         'detalhes-paciente': (pacienteId) => {
             if (!db) { console.error("DB não está definido em Detalhes do Paciente."); return; }

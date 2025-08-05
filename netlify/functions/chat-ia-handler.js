@@ -12,55 +12,54 @@ exports.handler = async function (event, context) {
         return { statusCode: 200, headers, body: JSON.stringify({ message: 'Successful preflight call.' }) };
     }
     
-    const { query } = JSON.parse(event.body);
+    // [MODIFICADO] Recebe o histórico e a pergunta atual
+    const { history, query } = JSON.parse(event.body);
     if (!query) {
-        return { statusCode: 400, headers, body: 'Pergunta não fornecida.' };
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Pergunta não fornecida.' }) };
     }
 
     try {
+        // A busca na web continua sendo feita apenas com a pergunta mais recente
         const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=${process.env.SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`;
         const searchResponse = await fetch(searchUrl);
         const searchData = await searchResponse.json();
 
         const searchSnippets = searchData.items?.slice(0, 3).map(item => item.snippet).join('\n\n');
         
-        if (!searchSnippets || searchSnippets.length === 0) {
-            return { 
-                statusCode: 404, 
-                headers, 
-                body: JSON.stringify({ error: 'Não consegui encontrar informações sobre isso na web. Tente uma pergunta mais específica.' })
-            };
-        }
-
-        // [CORREÇÃO FINAL] - Atualiza o nome do modelo para a versão estável mais recente
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`;
-        
-        const prompt = `
-            Você é um assistente especialista em psicologia e neurociências.
-            Com base nos seguintes dados extraídos da web, responda à pergunta do usuário de forma clara, concisa e informativa.
-            Não mencione que você está usando dados da web, apenas responda à pergunta diretamente.
-
-            DADOS DA WEB:
+        // Se não encontrar nada na web, a IA ainda pode responder com base no contexto
+        const webDataContext = searchSnippets ? `
+            DADOS DA WEB PARA CONTEXTO ADICIONAL:
             ---
             ${searchSnippets}
             ---
+        ` : 'Não foram encontrados dados relevantes na web para esta pergunta.';
 
-            PERGUNTA DO USUÁRIO:
-            "${query}"
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        
+        // [MODIFICADO] O prompt agora inclui o contexto da busca na web
+        const prompt = `
+            ${webDataContext}
+            Com base no contexto acima e no histórico da conversa, responda à última pergunta do usuário.
         `;
         
+        // [MODIFICADO] A requisição para o Gemini agora inclui o histórico
+        const geminiRequestBody = {
+            contents: [
+                ...history, // Inclui todas as mensagens anteriores
+                { role: 'user', parts: [{ text: query }] }, // A pergunta atual
+                { role: 'model', parts: [{ text: prompt }] } // A instrução final com dados da web
+            ]
+        };
+
         const geminiResponse = await fetch(geminiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-            }),
+            body: JSON.stringify(geminiRequestBody),
         });
 
         const geminiData = await geminiResponse.json();
         
         if (geminiData.error || !geminiData.candidates || geminiData.candidates.length === 0) {
-            // Log do erro real do Gemini para depuração futura
             console.error('Erro retornado pela API Gemini:', JSON.stringify(geminiData, null, 2));
             return { 
                 statusCode: 500,
