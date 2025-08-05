@@ -825,3 +825,12 @@ p#header-idade-paciente {
 .chat-message .message-content .download-laudo-btn:hover {
     background-color: #218838;
 }
+#chat-send-btn:disabled {
+    background-color: #a0c7ff;
+    cursor: not-allowed;
+}
+
+/* [NOVO] Garante que o botão no header do chat não afete o título */
+.header-container #new-chat-btn {
+    margin-left: auto;
+}
