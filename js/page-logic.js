@@ -1145,7 +1145,7 @@ FSLaudosApp.pageLogic = (() => {
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: true,
-                                    scales: { y: { beginAtZero: false, min: 20, max: 90 } },
+                                    scales: { y: { beginAtZero: false, min: 20, max: 200 } },
                                     plugins: {
                                         legend: { display: false },
                                         datalabels: {
