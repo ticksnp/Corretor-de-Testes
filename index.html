@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FS Laudos</title>
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Bibliotecas Essenciais (exceto as que serão carregadas localmente) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js" defer></script>
+
+    <!-- [SOLUÇÃO DEFINITIVA] Carregando as bibliotecas localmente -->
+    <script src="js/pizzip.min.js" defer></script>
+    <script src="js/docxtemplater.min.js" defer></script>
+    <script src="js/image-module.min.js" defer></script>
+    
+    <!-- Scripts da Aplicação -->
+    <script> const FSLaudosApp = {}; </script>
+    <script src="js/firebase-config.js" defer></script>
+    <script src="js/baremos.js" defer></script>
+    <script src="js/test-forms.js" defer></script>
+    <script src="js/views.js" defer></script>
+    <script src="js/export.js" defer></script>
+    <script src="js/page-logic.js" defer></script> 
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="/images/logo.png" alt="Laudos Logo">
+                <span class="logo-text">Laudos</span>
+            </div>
+            <ul id="nav-menu">
+                <li><a href="#laudos" data-page="laudos" class="nav-link">Laudos</a></li>
+                <li><a href="#pacientes" data-page="pacientes" class="nav-link">Pacientes</a></li>
+                <!-- [NOVO] Adicionado link para o Chat IA -->
+                <li><a href="#chat-ia" data-page="chat-ia" class="nav-link">ChatIA</a></li>
+                <li class="has-submenu">
+                    <a href="#" class="nav-link config-parent-link">Configurações</a>
+                    <ul class="submenu">
+                        <li><a href="#configuracoes-laudo" data-page="configuracoes-laudo" class="nav-link">Laudo</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <main id="app-content" class="content">
+            </main>
+    </div>
+</body>
+</html>
