@@ -238,32 +238,30 @@ FSLaudosApp.pageLogic = (() => {
             renderTable();
         },
         'chat-ia': () => {
+            const chatContainer = document.querySelector('.chat-container');
             const chatForm = document.getElementById('chat-form');
             const chatInput = document.getElementById('chat-input');
             const chatSendBtn = document.getElementById('chat-send-btn');
             const messagesContainer = document.getElementById('chat-messages');
             const newChatBtn = document.getElementById('new-chat-btn');
+            const attachBtn = document.getElementById('chat-attach-btn');
+            const fileInput = document.getElementById('chat-file-input');
+            const filePreviewContainer = document.getElementById('chat-file-preview-container');
 
-            // [NOVO] Array para armazenar o histórico da conversa
             let conversationHistory = [];
+            let currentFiles = [];
 
-            const initialMessageHtml = `
-                <div class="chat-message ai">
-                    <div class="avatar">IA</div>
-                    <div class="message-content">
-                        Olá! Sou seu assistente de IA. Como posso ajudar a analisar os dados de um teste psicológico hoje?
-                    </div>
-                </div>`;
+            const initialMessageHtml = `<div class="chat-message ai"><div class="avatar">IA</div><div class="message-content">Olá! Sou seu assistente de IA. Faça uma pergunta ou arraste uma imagem para cá para que eu possa analisá-la.</div></div>`;
 
-            // [NOVO] Função para iniciar uma nova conversa
             const startNewChat = () => {
                 conversationHistory = [];
+                currentFiles = [];
+                updateFilePreview();
                 messagesContainer.innerHTML = initialMessageHtml;
                 chatInput.focus();
             };
 
             const appendMessage = (sender, content) => {
-                // Adiciona a mensagem à interface visual
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('chat-message', sender);
                 
@@ -280,53 +278,118 @@ FSLaudosApp.pageLogic = (() => {
                 messagesContainer.appendChild(messageDiv);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-                // [MODIFICADO] Adiciona a mensagem ao histórico para a IA
-                // O Gemini espera papéis "user" e "model"
                 const role = (sender === 'user') ? 'user' : 'model';
                 conversationHistory.push({ role, parts: [{ text: content.replace(/<br>/g, '\n') }] });
             };
-            
+
+            const updateFilePreview = () => {
+                filePreviewContainer.innerHTML = '';
+                currentFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.classList.add('file-preview-item');
+                    
+                    let preview = document.createElement('span');
+                    if (file.type.startsWith('image/')) {
+                        preview = document.createElement('img');
+                        preview.src = URL.createObjectURL(file);
+                        preview.onload = () => URL.revokeObjectURL(preview.src);
+                    } else {
+                        preview.textContent = '📄'; // Ícone genérico para outros arquivos
+                    }
+
+                    const name = document.createElement('span');
+                    name.textContent = file.name;
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.classList.add('remove-file-btn');
+                    removeBtn.innerHTML = '×';
+                    removeBtn.onclick = () => {
+                        currentFiles.splice(index, 1);
+                        updateFilePreview();
+                    };
+
+                    item.append(preview, name, removeBtn);
+                    filePreviewContainer.appendChild(item);
+                });
+            };
+
+            const handleFiles = (files) => {
+                currentFiles.push(...Array.from(files));
+                updateFilePreview();
+            };
+
+            // Event Listeners para Anexo e Drag-and-Drop
+            attachBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+            chatContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                chatContainer.classList.add('drag-over');
+            });
+            chatContainer.addEventListener('dragleave', () => {
+                chatContainer.classList.remove('drag-over');
+            });
+            chatContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                chatContainer.classList.remove('drag-over');
+                handleFiles(e.dataTransfer.files);
+            });
+
             // ... (funções showTypingIndicator e removeTypingIndicator permanecem as mesmas) ...
             const showTypingIndicator = () => { /* ...código inalterado... */ };
             const removeTypingIndicator = () => { /* ...código inalterado... */ };
 
-            // [NOVO] Event listener para o botão de novo chat
             newChatBtn.addEventListener('click', startNewChat);
+
+            // Função para converter arquivo em Base64
+            const fileToBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Remove o prefixo "data:mime/type;base64,"
+                reader.onerror = error => reject(error);
+            });
 
             chatForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const userMessage = chatInput.value.trim();
-                if (!userMessage) return;
+                if (!userMessage && currentFiles.length === 0) return;
+
+                appendMessage('user', userMessage || 'Analisar anexo(s)');
+                const currentQuery = chatInput.value.trim();
                 
-                appendMessage('user', userMessage);
-                const currentQuery = chatInput.value.trim(); // Guarda a pergunta atual
                 chatInput.value = '';
                 chatSendBtn.disabled = true;
 
+                let imagePayload = null;
+                const imageFile = currentFiles.find(f => f.type.startsWith('image/'));
+
+                if (imageFile) {
+                    imagePayload = {
+                        mimeType: imageFile.type,
+                        data: await fileToBase64(imageFile)
+                    };
+                }
+                
+                currentFiles = [];
+                updateFilePreview();
                 showTypingIndicator();
 
                 try {
-                    // [MODIFICADO] Envia o histórico completo da conversa para o back-end
                     const response = await fetch('/.netlify/functions/chat-ia-handler', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            history: conversationHistory.slice(0, -1), // Envia todo o histórico, exceto a última pergunta do usuário
-                            query: currentQuery 
+                            history: conversationHistory.slice(0, -1),
+                            query: currentQuery,
+                            image: imagePayload // Envia a imagem, se houver
                         }),
                     });
 
                     removeTypingIndicator();
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Falha na comunicação com o assistente.');
-                    }
-
+                    if (!response.ok) throw new Error((await response.json()).error || 'Falha na comunicação.');
+                    
                     const data = await response.json();
-                    const formattedReply = data.reply.replace(/\n/g, '<br>');
-                    appendMessage('ai', formattedReply);
-
+                    appendMessage('ai', data.reply.replace(/\n/g, '<br>'));
                 } catch (error) {
                     removeTypingIndicator();
                     appendMessage('ai', `Desculpe, ocorreu um erro: ${error.message}`);
@@ -336,7 +399,6 @@ FSLaudosApp.pageLogic = (() => {
                 }
             });
             
-            // Inicia o primeiro chat ao carregar a página
             startNewChat();
         },
         'detalhes-paciente': (pacienteId) => {

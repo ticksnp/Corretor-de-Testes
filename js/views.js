@@ -54,7 +54,6 @@ FSLaudosApp.views = {
     'chat-ia': `
         <div class="header-container">
             <h1>ChatIA</h1>
-            <!-- [NOVO] Adicionado o botão de Novo Chat -->
             <button id="new-chat-btn" class="btn btn-secondary">Novo Chat</button>
         </div>
         <div class="chat-container">
@@ -62,13 +61,19 @@ FSLaudosApp.views = {
                 <div class="chat-message ai">
                     <div class="avatar">IA</div>
                     <div class="message-content">
-                        Olá! Sou seu assistente de IA. Como posso ajudar a analisar os dados de um teste psicológico hoje?
+                        Olá! Sou seu assistente de IA. Faça uma pergunta ou arraste uma imagem para cá para que eu possa analisá-la.
                     </div>
                 </div>
             </div>
             <div class="chat-input-area">
+                <!-- [RESTAURADO] Container para pré-visualização de arquivos -->
+                <div id="chat-file-preview-container"></div>
                 <form id="chat-form">
-                    <input type="text" id="chat-input" placeholder="Digite sua mensagem aqui..." autocomplete="off">
+                    <!-- [RESTAURADO] Botão de anexo e input de arquivo escondido -->
+                    <button type="button" id="chat-attach-btn" title="Anexar arquivo">📎</button>
+                    <input type="file" id="chat-file-input" hidden accept="image/*,video/*">
+
+                    <input type="text" id="chat-input" placeholder="Digite sua mensagem ou arraste uma imagem..." autocomplete="off">
                     <button type="submit" id="chat-send-btn" title="Enviar">➤</button>
                 </form>
             </div>

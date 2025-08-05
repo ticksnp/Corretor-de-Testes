@@ -756,7 +756,13 @@ p#header-idade-paciente {
     cursor: not-allowed;
 }
 
-/* [NOVO] Estilos para anexo de arquivo */
+/* [NOVO] Estilo para o feedback de arrastar arquivo */
+.chat-container.drag-over {
+    border: 2px dashed #007bff;
+    background-color: #f8f9fa;
+}
+
+/* [RESTAURADO] Estilos para anexo de arquivo */
 #chat-attach-btn {
     border-radius: 50%;
     width: 48px;
@@ -810,7 +816,6 @@ p#header-idade-paciente {
 .remove-file-btn:hover {
     color: #333;
 }
-
 /* [NOVO] Estilo para o botão de download no chat */
 .chat-message .message-content .download-laudo-btn {
     padding: 8px 15px;
