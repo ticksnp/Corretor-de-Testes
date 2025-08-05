@@ -76,6 +76,10 @@ exports.handler = async function (event, context) {
                 body: JSON.stringify({ error: `A IA retornou um erro: ${geminiData.error.message}` })
             };
         }
+        if (geminiData.error && (geminiData.error.status === 'UNAVAILABLE' || geminiData.error.code === 503)) {
+            console.warn('Modelo principal sobrecarregado, tentando fallback para gemini-1.0-pro...');
+            geminiData = await callGeminiAPI(geminiRequestBody, process.env.GEMINI_API_KEY, 'gemini-1.0-pro');
+        }
         
         const aiResponseText = geminiData.candidates[0].content.parts[0].text;
 
