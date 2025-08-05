@@ -8,6 +8,7 @@ body {
     font-family: 'Roboto', sans-serif;
     background-color: #f8f9fa;
     color: #333;
+    font-size: 15px; /* [AJUSTE] Reduzido o tamanho base da fonte */
 }
 
 .container {
@@ -29,18 +30,18 @@ body {
 .sidebar .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 24px;
+    gap: 10px; /* Reduzido */
+    padding: 20px; /* Reduzido */
     border-bottom: 1px solid #f0f0f0;
 }
 
 .sidebar .logo img {
-    height: 100px;
+    height: 90px; /* Reduzido */
     width: auto;
 }
 
 .sidebar .logo .logo-text {
-    font-size: 22px;
+    font-size: 20px; /* Reduzido */
     font-weight: 700;
     color: #2c3e50;
 }
@@ -53,7 +54,7 @@ body {
 
 .sidebar ul li a {
     display: block;
-    padding: 16px 24px;
+    padding: 14px 20px; /* Reduzido */
     text-decoration: none;
     color: #555;
     font-weight: 500;
@@ -103,11 +104,11 @@ body {
    ========================================================================== */
 .content {
     flex-grow: 1;
-    padding: 30px;
+    padding: 24px; /* Reduzido */
 }
 
 h1 {
-    font-size: 28px;
+    font-size: 26px; /* Reduzido */
     margin-bottom: 20px;
     margin-top: 0;
 }
@@ -128,20 +129,20 @@ h1 {
 
 h2#patient-name-header,
 h2#header-nome-paciente {
-    font-size: 24px;
+    font-size: 22px; /* Reduzido */
     margin: 0;
 }
 
 p#patient-age-header,
 p#header-idade-paciente {
-    font-size: 16px;
+    font-size: 15px; /* Reduzido */
     color: #6c757d;
     margin: 0;
 }
 
 .main-card {
     background-color: #ffffff;
-    padding: 25px;
+    padding: 20px; /* Reduzido */
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     width: 100%;
@@ -149,7 +150,7 @@ p#header-idade-paciente {
 }
 
 .btn {
-    padding: 10px 20px;
+    padding: 9px 18px; /* Reduzido */
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -158,6 +159,7 @@ p#header-idade-paciente {
     align-items: center;
     gap: 8px;
     transition: background-color 0.2s;
+    font-size: 14px;
 }
 .btn-primary {
     background-color: #28a745;
@@ -181,13 +183,14 @@ p#header-idade-paciente {
     text-align: left;
 }
 .data-table th, .data-table td {
-    padding: 15px;
+    padding: 12px 15px; /* Reduzido */
     border-bottom: 1px solid #e9ecef;
     vertical-align: middle;
 }
 .data-table th {
     font-weight: 700;
     color: #495057;
+    font-size: 14px;
 }
 .data-table tbody tr:hover {
     background-color: #f8f9fa;
@@ -197,22 +200,20 @@ p#header-idade-paciente {
     gap: 10px;
 }
 
-/* --- [NOVO] Estilos para as Tags de Teste --- */
 .test-tags-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px; /* Espaçamento entre as tags */
+    gap: 8px;
 }
 .test-tag {
-    background-color: #e9ecef; /* Cor de fundo da tag */
-    border: 1px solid #dee2e6; /* Borda sutil */
-    border-radius: 16px; /* Cantos arredondados */
-    padding: 4px 12px; /* Espaçamento interno */
-    font-size: 14px; /* Tamanho da fonte */
-    color: #495057; /* Cor do texto */
-    white-space: nowrap; /* Impede que o texto da tag quebre a linha */
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    padding: 4px 10px; /* Reduzido */
+    font-size: 13px; /* Reduzido */
+    color: #495057;
+    white-space: nowrap;
 }
-/* --- Fim dos Estilos de Tags --- */
 
 .modal-overlay {
     position: fixed;
@@ -231,11 +232,11 @@ p#header-idade-paciente {
 }
 .modal-content {
     background-color: white;
-    padding: 30px;
+    padding: 25px; /* Reduzido */
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     width: 100%;
-    max-width: 600px;
+    max-width: 550px; /* Reduzido */
 }
 .modal-header {
     display: flex;
@@ -247,12 +248,12 @@ p#header-idade-paciente {
 }
 .modal-header h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: 20px; /* Reduzido */
 }
 .close-modal {
     background: none;
     border: none;
-    font-size: 28px;
+    font-size: 26px; /* Reduzido */
     cursor: pointer;
     color: #6c757d;
 }
@@ -289,15 +290,15 @@ p#header-idade-paciente {
 .form-group input[type="number"],
 .form-group select {
     width: 100%;
-    padding: 10px;
+    padding: 9px; /* Reduzido */
     border: 1px solid #ced4da;
     border-radius: 6px;
     box-sizing: border-box;
-    font-size: 16px;
+    font-size: 15px;
 }
 .form-row {
     display: flex;
-    gap: 20px;
+    gap: 18px; /* Reduzido */
 }
 .form-row .form-group {
     flex: 1;
@@ -309,7 +310,7 @@ p#header-idade-paciente {
 .patient-details-body {
     display: flex;
     align-items: flex-start;
-    gap: 24px;
+    gap: 20px; /* Reduzido */
     padding: 0 24px;
 }
 .patient-details-sidebar {
@@ -327,7 +328,7 @@ p#header-idade-paciente {
 }
 .patient-details-sidebar .tab-link {
     display: block;
-    padding: 12px 16px;
+    padding: 11px 15px; /* Reduzido */
     text-decoration: none;
     color: #4a5568;
     border-radius: 6px;
@@ -376,7 +377,7 @@ p#header-idade-paciente {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 15px;
+    padding: 11px 15px; /* Reduzido */
     text-decoration: none;
     color: #333;
     transition: background-color 0.2s ease;
@@ -416,7 +417,7 @@ p#header-idade-paciente {
     color: #6c757d;
     border-bottom: 3px solid transparent;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 15px; /* Reduzido */
     transition: all 0.2s ease;
 }
 .test-tab-link.active {
@@ -433,7 +434,7 @@ p#header-idade-paciente {
 #preenchimento-content .footer-actions {
     display: flex;
     justify-content: flex-end;
-    padding: 20px 25px;
+    padding: 18px 20px; /* Reduzido */
     background-color: white;
     border-top: 1px solid #e9ecef;
     border-radius: 0 0 8px 8px;
@@ -527,7 +528,7 @@ p#header-idade-paciente {
 }
 .srs2-item label {
     font-weight: bold;
-    font-size: 18px;
+    font-size: 16px; /* Reduzido */
     color: #4a5568;
     grid-row: 1 / 3;
     align-self: center;
@@ -573,7 +574,7 @@ p#header-idade-paciente {
 .srs2-summary-panel h3 {
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 16px;
+    font-size: 15px; /* Reduzido */
     color: #343a40;
     border-bottom: 1px solid #e9ecef;
     padding-bottom: 10px;
@@ -585,14 +586,14 @@ p#header-idade-paciente {
 .srs2-summary-panel th {
     text-align: left;
     color: #495057;
-    font-size: 14px;
+    font-size: 13px; /* Reduzido */
     padding: 10px 5px;
     border-bottom: 2px solid #dee2e6;
 }
 .srs2-summary-panel td {
     padding: 12px 5px;
     border-bottom: 1px solid #f0f0f0;
-    font-size: 15px;
+    font-size: 14px; /* Reduzido */
 }
 .srs2-summary-panel td:not(:first-child) {
     text-align: center;
@@ -614,9 +615,9 @@ p#header-idade-paciente {
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 100px); /* Ajuste a altura conforme necessário */
+    height: calc(100vh - 100px);
     width: 100%;
-    max-width: 900px;
+    max-width: 800px; /* Reduzido */
     margin: 0 auto;
     background-color: #ffffff;
     border-radius: 8px;
@@ -652,7 +653,7 @@ p#header-idade-paciente {
 }
 
 .chat-message .message-content {
-    padding: 12px 18px;
+    padding: 10px 16px; /* Reduzido */
     border-radius: 18px;
     line-height: 1.5;
 }
@@ -711,7 +712,7 @@ p#header-idade-paciente {
 }
 
 .chat-input-area {
-    padding: 15px 20px;
+    padding: 12px 18px; /* Reduzido */
     border-top: 1px solid #e9ecef;
 }
 
@@ -723,10 +724,10 @@ p#header-idade-paciente {
 
 #chat-input {
     flex-grow: 1;
-    padding: 12px 15px;
+    padding: 11px 15px; /* Reduzido */
     border-radius: 20px;
     border: 1px solid #ced4da;
-    font-size: 16px;
+    font-size: 15px;
     outline: none;
     transition: border-color 0.2s;
 }
@@ -737,8 +738,8 @@ p#header-idade-paciente {
 
 #chat-send-btn {
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    width: 44px; /* Ajustado */
+    height: 44px; /* Ajustado */
     background-color: #007bff;
     color: white;
     border: none;
@@ -756,17 +757,15 @@ p#header-idade-paciente {
     cursor: not-allowed;
 }
 
-/* [NOVO] Estilo para o feedback de arrastar arquivo */
 .chat-container.drag-over {
     border: 2px dashed #007bff;
     background-color: #f8f9fa;
 }
 
-/* [RESTAURADO] Estilos para anexo de arquivo */
 #chat-attach-btn {
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    width: 44px; /* Ajustado */
+    height: 44px; /* Ajustado */
     background-color: transparent;
     color: #555;
     border: none;
@@ -775,7 +774,7 @@ p#header-idade-paciente {
     transition: background-color 0.2s;
     flex-shrink: 0;
     padding: 0;
-    line-height: 48px;
+    line-height: 44px;
 }
 #chat-attach-btn:hover {
     background-color: #e9ecef;
@@ -816,7 +815,6 @@ p#header-idade-paciente {
 .remove-file-btn:hover {
     color: #333;
 }
-/* [NOVO] Estilo para o botão de download no chat */
 .chat-message .message-content .download-laudo-btn {
     padding: 8px 15px;
     margin-top: 10px;
@@ -830,12 +828,7 @@ p#header-idade-paciente {
 .chat-message .message-content .download-laudo-btn:hover {
     background-color: #218838;
 }
-#chat-send-btn:disabled {
-    background-color: #a0c7ff;
-    cursor: not-allowed;
-}
 
-/* [NOVO] Garante que o botão no header do chat não afete o título */
 .header-container #new-chat-btn {
     margin-left: auto;
 }
