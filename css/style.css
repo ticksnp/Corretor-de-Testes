@@ -8,7 +8,7 @@ body {
     font-family: 'Roboto', sans-serif;
     background-color: #f8f9fa;
     color: #333;
-    font-size: 15px; /* [AJUSTE] Reduzido o tamanho base da fonte */
+    font-size: 15px;
 }
 
 .container {
@@ -30,18 +30,18 @@ body {
 .sidebar .logo {
     display: flex;
     align-items: center;
-    gap: 10px; /* Reduzido */
-    padding: 20px; /* Reduzido */
+    gap: 10px;
+    padding: 20px;
     border-bottom: 1px solid #f0f0f0;
 }
 
 .sidebar .logo img {
-    height: 90px; /* Reduzido */
+    height: 90px;
     width: auto;
 }
 
 .sidebar .logo .logo-text {
-    font-size: 20px; /* Reduzido */
+    font-size: 20px;
     font-weight: 700;
     color: #2c3e50;
 }
@@ -54,7 +54,7 @@ body {
 
 .sidebar ul li a {
     display: block;
-    padding: 14px 20px; /* Reduzido */
+    padding: 14px 20px;
     text-decoration: none;
     color: #555;
     font-weight: 500;
@@ -104,11 +104,11 @@ body {
    ========================================================================== */
 .content {
     flex-grow: 1;
-    padding: 24px; /* Reduzido */
+    padding: 24px;
 }
 
 h1 {
-    font-size: 26px; /* Reduzido */
+    font-size: 26px;
     margin-bottom: 20px;
     margin-top: 0;
 }
@@ -129,20 +129,20 @@ h1 {
 
 h2#patient-name-header,
 h2#header-nome-paciente {
-    font-size: 22px; /* Reduzido */
+    font-size: 22px;
     margin: 0;
 }
 
 p#patient-age-header,
 p#header-idade-paciente {
-    font-size: 15px; /* Reduzido */
+    font-size: 15px;
     color: #6c757d;
     margin: 0;
 }
 
 .main-card {
     background-color: #ffffff;
-    padding: 20px; /* Reduzido */
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     width: 100%;
@@ -150,7 +150,7 @@ p#header-idade-paciente {
 }
 
 .btn {
-    padding: 9px 18px; /* Reduzido */
+    padding: 9px 18px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -183,7 +183,7 @@ p#header-idade-paciente {
     text-align: left;
 }
 .data-table th, .data-table td {
-    padding: 12px 15px; /* Reduzido */
+    padding: 12px 15px;
     border-bottom: 1px solid #e9ecef;
     vertical-align: middle;
 }
@@ -209,8 +209,8 @@ p#header-idade-paciente {
     background-color: #e9ecef;
     border: 1px solid #dee2e6;
     border-radius: 16px;
-    padding: 4px 10px; /* Reduzido */
-    font-size: 13px; /* Reduzido */
+    padding: 4px 10px;
+    font-size: 13px;
     color: #495057;
     white-space: nowrap;
 }
@@ -232,11 +232,11 @@ p#header-idade-paciente {
 }
 .modal-content {
     background-color: white;
-    padding: 25px; /* Reduzido */
+    padding: 25px;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     width: 100%;
-    max-width: 550px; /* Reduzido */
+    max-width: 550px;
 }
 .modal-header {
     display: flex;
@@ -248,12 +248,12 @@ p#header-idade-paciente {
 }
 .modal-header h2 {
     margin: 0;
-    font-size: 20px; /* Reduzido */
+    font-size: 20px;
 }
 .close-modal {
     background: none;
     border: none;
-    font-size: 26px; /* Reduzido */
+    font-size: 26px;
     cursor: pointer;
     color: #6c757d;
 }
@@ -290,7 +290,7 @@ p#header-idade-paciente {
 .form-group input[type="number"],
 .form-group select {
     width: 100%;
-    padding: 9px; /* Reduzido */
+    padding: 9px;
     border: 1px solid #ced4da;
     border-radius: 6px;
     box-sizing: border-box;
@@ -298,7 +298,7 @@ p#header-idade-paciente {
 }
 .form-row {
     display: flex;
-    gap: 18px; /* Reduzido */
+    gap: 18px;
 }
 .form-row .form-group {
     flex: 1;
@@ -310,7 +310,7 @@ p#header-idade-paciente {
 .patient-details-body {
     display: flex;
     align-items: flex-start;
-    gap: 20px; /* Reduzido */
+    gap: 20px;
     padding: 0 24px;
 }
 .patient-details-sidebar {
@@ -328,7 +328,7 @@ p#header-idade-paciente {
 }
 .patient-details-sidebar .tab-link {
     display: block;
-    padding: 11px 15px; /* Reduzido */
+    padding: 11px 15px;
     text-decoration: none;
     color: #4a5568;
     border-radius: 6px;
@@ -377,7 +377,7 @@ p#header-idade-paciente {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 11px 15px; /* Reduzido */
+    padding: 11px 15px;
     text-decoration: none;
     color: #333;
     transition: background-color 0.2s ease;
@@ -417,7 +417,7 @@ p#header-idade-paciente {
     color: #6c757d;
     border-bottom: 3px solid transparent;
     font-weight: 500;
-    font-size: 15px; /* Reduzido */
+    font-size: 15px;
     transition: all 0.2s ease;
 }
 .test-tab-link.active {
@@ -434,7 +434,7 @@ p#header-idade-paciente {
 #preenchimento-content .footer-actions {
     display: flex;
     justify-content: flex-end;
-    padding: 18px 20px; /* Reduzido */
+    padding: 18px 20px;
     background-color: white;
     border-top: 1px solid #e9ecef;
     border-radius: 0 0 8px 8px;
@@ -471,10 +471,20 @@ p#header-idade-paciente {
     color: #333;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
+/* [AJUSTE] Correção nos estilos do contêiner do gráfico */
 .chart-wrapper {
     position: relative;
     padding: 20px;
+    min-height: 400px; /* Garante uma altura mínima para o gráfico se desenhar */
+    width: 100%;
+    box-sizing: border-box;
 }
+.chart-wrapper canvas {
+    max-width: 100%;
+    height: auto;
+}
+
 .chart-header {
     text-align: center;
     margin-bottom: 15px;
@@ -484,6 +494,11 @@ p#header-idade-paciente {
     font-size: 18px;
     font-weight: 500;
     color: #495057;
+}
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 /* ==========================================================================
@@ -528,7 +543,7 @@ p#header-idade-paciente {
 }
 .srs2-item label {
     font-weight: bold;
-    font-size: 16px; /* Reduzido */
+    font-size: 16px;
     color: #4a5568;
     grid-row: 1 / 3;
     align-self: center;
@@ -574,7 +589,7 @@ p#header-idade-paciente {
 .srs2-summary-panel h3 {
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 15px; /* Reduzido */
+    font-size: 15px;
     color: #343a40;
     border-bottom: 1px solid #e9ecef;
     padding-bottom: 10px;
@@ -586,14 +601,14 @@ p#header-idade-paciente {
 .srs2-summary-panel th {
     text-align: left;
     color: #495057;
-    font-size: 13px; /* Reduzido */
+    font-size: 13px;
     padding: 10px 5px;
     border-bottom: 2px solid #dee2e6;
 }
 .srs2-summary-panel td {
     padding: 12px 5px;
     border-bottom: 1px solid #f0f0f0;
-    font-size: 14px; /* Reduzido */
+    font-size: 14px;
 }
 .srs2-summary-panel td:not(:first-child) {
     text-align: center;
@@ -617,11 +632,15 @@ p#header-idade-paciente {
     flex-direction: column;
     height: calc(100vh - 100px);
     width: 100%;
-    max-width: 800px; /* Reduzido */
+    max-width: 800px;
     margin: 0 auto;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.chat-container.drag-over {
+    border: 2px dashed #007bff;
+    background-color: #f8f9fa;
 }
 
 #chat-messages {
@@ -653,7 +672,7 @@ p#header-idade-paciente {
 }
 
 .chat-message .message-content {
-    padding: 10px 16px; /* Reduzido */
+    padding: 10px 16px;
     border-radius: 18px;
     line-height: 1.5;
 }
@@ -712,7 +731,7 @@ p#header-idade-paciente {
 }
 
 .chat-input-area {
-    padding: 12px 18px; /* Reduzido */
+    padding: 12px 18px;
     border-top: 1px solid #e9ecef;
 }
 
@@ -724,7 +743,7 @@ p#header-idade-paciente {
 
 #chat-input {
     flex-grow: 1;
-    padding: 11px 15px; /* Reduzido */
+    padding: 11px 15px;
     border-radius: 20px;
     border: 1px solid #ced4da;
     font-size: 15px;
@@ -738,8 +757,8 @@ p#header-idade-paciente {
 
 #chat-send-btn {
     border-radius: 50%;
-    width: 44px; /* Ajustado */
-    height: 44px; /* Ajustado */
+    width: 44px;
+    height: 44px;
     background-color: #007bff;
     color: white;
     border: none;
@@ -757,15 +776,10 @@ p#header-idade-paciente {
     cursor: not-allowed;
 }
 
-.chat-container.drag-over {
-    border: 2px dashed #007bff;
-    background-color: #f8f9fa;
-}
-
 #chat-attach-btn {
     border-radius: 50%;
-    width: 44px; /* Ajustado */
-    height: 44px; /* Ajustado */
+    width: 44px;
+    height: 44px;
     background-color: transparent;
     color: #555;
     border: none;

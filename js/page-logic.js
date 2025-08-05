@@ -1,7 +1,6 @@
 // js/page-logic.js
 
 // --- FUNÇÕES AUXILIARES GLOBAIS ---
-// ... (nenhuma mudança aqui, todas as funções auxiliares permanecem as mesmas) ...
 FSLaudosApp.formatDateInput = (inputElement) => {
     if (!inputElement) return;
     let value = inputElement.value.replace(/\D/g, '');
@@ -48,6 +47,15 @@ FSLaudosApp.calculateAgeInYearsAtDate = (dobString, appDateString) => {
 
 FSLaudosApp.pageLogic = (() => {
     const db = FSLaudosApp.db;
+    let activeChart = null; // Variável global para manter a instância do gráfico ativo
+
+    // Função para destruir o gráfico anterior antes de criar um novo
+    const destroyActiveChart = () => {
+        if (activeChart) {
+            activeChart.destroy();
+            activeChart = null;
+        }
+    };
     
     return {
         laudos: () => {
@@ -294,7 +302,7 @@ FSLaudosApp.pageLogic = (() => {
                         preview.src = URL.createObjectURL(file);
                         preview.onload = () => URL.revokeObjectURL(preview.src);
                     } else {
-                        preview.textContent = '📄'; // Ícone genérico para outros arquivos
+                        preview.textContent = '📄';
                     }
 
                     const name = document.createElement('span');
@@ -302,7 +310,7 @@ FSLaudosApp.pageLogic = (() => {
                     
                     const removeBtn = document.createElement('button');
                     removeBtn.classList.add('remove-file-btn');
-                    removeBtn.innerHTML = '×';
+                    removeBtn.innerHTML = '&times;';
                     removeBtn.onclick = () => {
                         currentFiles.splice(index, 1);
                         updateFilePreview();
@@ -318,7 +326,6 @@ FSLaudosApp.pageLogic = (() => {
                 updateFilePreview();
             };
 
-            // Event Listeners para Anexo e Drag-and-Drop
             attachBtn.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
@@ -335,17 +342,24 @@ FSLaudosApp.pageLogic = (() => {
                 handleFiles(e.dataTransfer.files);
             });
 
-            // ... (funções showTypingIndicator e removeTypingIndicator permanecem as mesmas) ...
-            const showTypingIndicator = () => { /* ...código inalterado... */ };
-            const removeTypingIndicator = () => { /* ...código inalterado... */ };
+            const showTypingIndicator = () => {
+                const indicatorDiv = document.createElement('div');
+                indicatorDiv.classList.add('chat-message', 'ai', 'typing-indicator-container');
+                indicatorDiv.innerHTML = `<div class="avatar">IA</div><div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+                messagesContainer.appendChild(indicatorDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            };
+            const removeTypingIndicator = () => {
+                const indicator = messagesContainer.querySelector('.typing-indicator-container');
+                if (indicator) indicator.remove();
+            };
 
             newChatBtn.addEventListener('click', startNewChat);
 
-            // Função para converter arquivo em Base64
             const fileToBase64 = (file) => new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]); // Remove o prefixo "data:mime/type;base64,"
+                reader.onload = () => resolve(reader.result.split(',')[1]);
                 reader.onerror = error => reject(error);
             });
 
@@ -381,7 +395,7 @@ FSLaudosApp.pageLogic = (() => {
                         body: JSON.stringify({ 
                             history: conversationHistory.slice(0, -1),
                             query: currentQuery,
-                            image: imagePayload // Envia a imagem, se houver
+                            image: imagePayload
                         }),
                     });
 
@@ -682,6 +696,7 @@ FSLaudosApp.pageLogic = (() => {
             let chaveTesteAtiva = '';
 
             const renderContentPane = (tabName) => {
+                destroyActiveChart(); // Destrói qualquer gráfico existente ao mudar de aba/conteúdo
                 const content = document.getElementById('preenchimento-content');
                 if (!content) return;
                 
@@ -694,6 +709,7 @@ FSLaudosApp.pageLogic = (() => {
                     content.innerHTML = `<div class="main-card"><p>Configuração para ${chaveTesteAtiva} não encontrada.</p></div>`;
                     return;
                 }
+                
                 if (tabName === 'teste') {
                     content.innerHTML = FSLaudosApp.gerarHtmlDoFormulario(chaveTesteAtiva);
                     
@@ -1070,6 +1086,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
 
                         const setupTabela = () => {
+                            destroyActiveChart();
                             const data = getSrs2ResultsData();
                             if (!data) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar a tabela de resultados.</p>';
@@ -1095,6 +1112,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
                         
                         const setupGrafico = () => {
+                            destroyActiveChart();
                             const data = getSrs2ResultsData();
                              if (!data) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar o gráfico.</p>';
@@ -1104,7 +1122,7 @@ FSLaudosApp.pageLogic = (() => {
                             const chartLabels = data.map(d => d.label);
                             const chartData = data.map(d => d.tScore);
                             
-                            resultsContentArea.innerHTML = `<div class="chart-wrapper" style="height: 400px; position: relative;">
+                            resultsContentArea.innerHTML = `<div class="chart-wrapper">
                                 <div class="chart-header">
                                     <h3>SRS-2<br><small style="font-weight: normal; color: #555;">Normal: < 59</small></h3>
                                     <button class="btn-icon" id="download-srs2-chart"><img src="https://img.icons8.com/ios-glyphs/24/000000/download.png" alt="Download"/></button>
@@ -1114,7 +1132,7 @@ FSLaudosApp.pageLogic = (() => {
 
                             Chart.register(ChartDataLabels);
                             const ctx = document.getElementById('srs2-chart').getContext('2d');
-                            const chart = new Chart(ctx, {
+                            activeChart = new Chart(ctx, {
                                 type: 'bar',
                                 data: {
                                     labels: chartLabels,
@@ -1126,7 +1144,7 @@ FSLaudosApp.pageLogic = (() => {
                                 },
                                 options: {
                                     responsive: true,
-                                    maintainAspectRatio: false,
+                                    maintainAspectRatio: true,
                                     scales: { y: { beginAtZero: false, min: 20, max: 90 } },
                                     plugins: {
                                         legend: { display: false },
@@ -1140,7 +1158,7 @@ FSLaudosApp.pageLogic = (() => {
                             });
                             document.getElementById('download-srs2-chart').onclick = () => {
                                 const a = document.createElement('a');
-                                a.href = chart.toBase64Image();
+                                a.href = activeChart.toBase64Image();
                                 a.download = `grafico_srs2_${laudoDataAtual.pacienteNome.replace(/ /g, '_')}.png`;
                                 a.click();
                             };
@@ -1197,6 +1215,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
 
                         const setupTabela = () => {
+                            destroyActiveChart();
                             const data = getWiscResultsData();
                             if (!data || data.length === 0 || !data.some(d => d.composite)) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar a tabela de resultados.</p>';
@@ -1226,6 +1245,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
                         
                         const setupGrafico = () => {
+                            destroyActiveChart();
                             const data = getWiscResultsData();
                              if (!data || data.length === 0 || !data.some(d => d.composite)) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar o gráfico.</p>';
@@ -1236,7 +1256,7 @@ FSLaudosApp.pageLogic = (() => {
                             const chartData = data.map(d => d.composite);
                             const highestClassification = data.sort((a,b) => b.composite - a.composite)[0]?.classification || '';
                             
-                            resultsContentArea.innerHTML = `<div class="chart-wrapper" style="height: 400px; position: relative;">
+                            resultsContentArea.innerHTML = `<div class="chart-wrapper">
                                 <div class="chart-header">
                                     <h3>ÍNDICES E QI - WISC IV<br><small style="font-weight: normal; color: #555;">${highestClassification}: >130</small></h3>
                                     <button class="btn-icon" id="download-wisc-chart"><img src="https://img.icons8.com/ios-glyphs/24/000000/download.png" alt="Download"/></button>
@@ -1261,7 +1281,7 @@ FSLaudosApp.pageLogic = (() => {
                             Chart.register(chartBackgroundPlugin, ChartDataLabels);
 
                             const ctx = document.getElementById('wisc-chart').getContext('2d');
-                            const chart = new Chart(ctx, {
+                            activeChart = new Chart(ctx, {
                                 type: 'bar',
                                 data: {
                                     labels: chartLabels,
@@ -1273,7 +1293,7 @@ FSLaudosApp.pageLogic = (() => {
                                 },
                                 options: {
                                     responsive: true,
-                                    maintainAspectRatio: false,
+                                    maintainAspectRatio: true,
                                     scales: { y: { beginAtZero: false, min: 40, max: 160 } },
                                     plugins: {
                                         legend: { display: false },
@@ -1289,7 +1309,7 @@ FSLaudosApp.pageLogic = (() => {
                             });
                             document.getElementById('download-wisc-chart').onclick = () => {
                                 const a = document.createElement('a');
-                                a.href = chart.toBase64Image();
+                                a.href = activeChart.toBase64Image();
                                 a.download = `grafico_wisciv_${laudoDataAtual.pacienteNome.replace(/ /g, '_')}.png`;
                                 a.click();
                             };
@@ -1312,52 +1332,52 @@ FSLaudosApp.pageLogic = (() => {
                         content.innerHTML = testForms.BPA2.resultadosHtml;
                         const resultsContentArea = content.querySelector('#results-content-area');
                         const setupChart = () => {
-                            if (!resultsContentArea) return;
+                            destroyActiveChart();
                             resultsContentArea.innerHTML = `<div class="chart-wrapper"><div class="chart-header"><h3>BPA-2</h3></div><canvas id="bpa2-chart"></canvas></div>`;
-                            setTimeout(() => {
-                                const ctx = document.getElementById('bpa2-chart');
-                                if (!ctx) return;
-                                const ageInYears = FSLaudosApp.calculateAgeInYearsAtDate(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
-                                const ageGroupKey = baremos.getAgeGroupKeyBPA2(ageInYears);
-                                const pontos = laudoDataAtual.resultados?.BPA2?.pontos;
-                                if (!pontos || !ageGroupKey) {
-                                    resultsContentArea.innerHTML = '<div class="main-card" style="padding: 40px;"><p style="text-align: center;">Pontuações ou idade do paciente não são válidas para gerar o gráfico.</p></div>';
-                                    return;
-                                }
-                                const acScore = parseInt(pontos.ac) || 0;
-                                const adScore = parseInt(pontos.ad) || 0;
-                                const aaScore = parseInt(pontos.aa) || 0;
-                                const agScore = acScore + adScore + aaScore;
-                                const obtainedData = [ acScore, adScore, aaScore, agScore ];
-                                const averageData = [ baremos.getBpa2AverageScore(ageGroupKey, 'ac'), baremos.getBpa2AverageScore(ageGroupKey, 'ad'), baremos.getBpa2AverageScore(ageGroupKey, 'aa'), baremos.getBpa2AverageScore(ageGroupKey, 'ag') ];
-                                Chart.register(ChartDataLabels);
-                                new Chart(ctx.getContext('2d'), {
-                                    type: 'bar',
-                                    data: {
-                                        labels: ['AC', 'AD', 'AA', 'AG'],
-                                        datasets: [
-                                            { label: 'Obtido', data: obtainedData, backgroundColor: '#4A80D5' }, 
-                                            { label: 'Média', data: averageData, backgroundColor: '#8BC34A' }
-                                        ]
-                                    },
-                                    options: {
-                                        scales: { y: { beginAtZero: true } },
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            datalabels: {
-                                                anchor: 'end',
-                                                align: 'top',
-                                                font: { weight: 'bold' },
-                                                color: '#444',
-                                                formatter: function(value) { return value > 0 ? value : null; }
-                                            }
+                            
+                            const ctx = document.getElementById('bpa2-chart');
+                            if (!ctx) return;
+                            const ageInYears = FSLaudosApp.calculateAgeInYearsAtDate(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
+                            const ageGroupKey = baremos.getAgeGroupKeyBPA2(ageInYears);
+                            const pontos = laudoDataAtual.resultados?.BPA2?.pontos;
+                            if (!pontos || !ageGroupKey) {
+                                resultsContentArea.innerHTML = '<div class="main-card" style="padding: 40px;"><p style="text-align: center;">Pontuações ou idade do paciente não são válidas para gerar o gráfico.</p></div>';
+                                return;
+                            }
+                            const acScore = parseInt(pontos.ac) || 0;
+                            const adScore = parseInt(pontos.ad) || 0;
+                            const aaScore = parseInt(pontos.aa) || 0;
+                            const agScore = acScore + adScore + aaScore;
+                            const obtainedData = [ acScore, adScore, aaScore, agScore ];
+                            const averageData = [ baremos.getBpa2AverageScore(ageGroupKey, 'ac'), baremos.getBpa2AverageScore(ageGroupKey, 'ad'), baremos.getBpa2AverageScore(ageGroupKey, 'aa'), baremos.getBpa2AverageScore(ageGroupKey, 'ag') ];
+                            Chart.register(ChartDataLabels);
+                            activeChart = new Chart(ctx.getContext('2d'), {
+                                type: 'bar',
+                                data: {
+                                    labels: ['AC', 'AD', 'AA', 'AG'],
+                                    datasets: [
+                                        { label: 'Obtido', data: obtainedData, backgroundColor: '#4A80D5' }, 
+                                        { label: 'Média', data: averageData, backgroundColor: '#8BC34A' }
+                                    ]
+                                },
+                                options: {
+                                    scales: { y: { beginAtZero: true } },
+                                    responsive: true,
+                                    maintainAspectRatio: true,
+                                    plugins: {
+                                        datalabels: {
+                                            anchor: 'end',
+                                            align: 'top',
+                                            font: { weight: 'bold' },
+                                            color: '#444',
+                                            formatter: function(value) { return value > 0 ? value : null; }
                                         }
                                     }
-                                });
-                            }, 0);
+                                }
+                            });
                         };
                         const setupTabela = () => {
+                            destroyActiveChart();
                             if (!resultsContentArea) return;
                             const ageInYears = FSLaudosApp.calculateAgeInYearsAtDate(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
                             const ageGroupKey = ageInYears !== null ? baremos.getAgeGroupKeyBPA2(ageInYears) : null;
@@ -1416,6 +1436,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
 
                         const setupTabela = () => {
+                             destroyActiveChart();
                              const pontos = laudoDataAtual.resultados?.RAVLT?.pontos;
                              if (!pontos || Object.keys(pontos).length === 0) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar a tabela de resultados.</p>';
@@ -1462,6 +1483,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
 
                         const setupGrafico = () => {
+                            destroyActiveChart();
                             const pontos = laudoDataAtual.resultados?.RAVLT?.pontos;
                              if (!pontos || Object.keys(pontos).length === 0) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar o gráfico.</p>';
@@ -1474,13 +1496,10 @@ FSLaudosApp.pageLogic = (() => {
                                 return value % 1 !== 0 ? parseFloat(value.toFixed(2)) : value;
                             });
 
-                            resultsContentArea.innerHTML = `<div class="chart-wrapper" style="height: 450px; position: relative;">
-                                <div class="chart-header"><h3>RAVLT</h3></div>
-                                <canvas id="ravlt-chart"></canvas>
-                            </div>`;
+                            resultsContentArea.innerHTML = `<div class="chart-wrapper"><div class="chart-header"><h3>RAVLT</h3></div><canvas id="ravlt-chart"></canvas></div>`;
 
                             const ctx = document.getElementById('ravlt-chart').getContext('2d');
-                            new Chart(ctx, {
+                            activeChart = new Chart(ctx, {
                                 type: 'line',
                                 data: {
                                     labels: baremos.RAVLTData.graphData.labels,
@@ -1492,7 +1511,7 @@ FSLaudosApp.pageLogic = (() => {
                                 },
                                 options: {
                                     responsive: true,
-                                    maintainAspectRatio: false,
+                                    maintainAspectRatio: true,
                                     scales: { y: { suggestedMin: -40, suggestedMax: 20 } },
                                     plugins: { legend: { position: 'top' } }
                                 }
@@ -1535,6 +1554,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
                         
                         const setupTabela = () => {
+                            destroyActiveChart();
                             const data = getEtdahResultsData();
                             if (!data) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar a tabela de resultados.</p>';
@@ -1548,6 +1568,7 @@ FSLaudosApp.pageLogic = (() => {
                         };
 
                         const setupGrafico = () => {
+                            destroyActiveChart();
                             const data = getEtdahResultsData();
                             if (!data) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar o gráfico.</p>';
@@ -1557,10 +1578,10 @@ FSLaudosApp.pageLogic = (() => {
                             const chartLabels = formConfig.fatores.map(f => f.id);
                             const chartData = chartLabels.map(id => data[id]?.score || 0);
 
-                            resultsContentArea.innerHTML = `<div class="chart-wrapper" style="height: 400px; position: relative;"><div class="chart-header"><h3>ETDAH-AD</h3><button class="btn-icon" id="download-etdah-chart"><img src="https://img.icons8.com/ios-glyphs/24/000000/download.png" alt="Download"/></button></div><canvas id="etdah-ad-chart"></canvas></div>`;
+                            resultsContentArea.innerHTML = `<div class="chart-wrapper"><div class="chart-header"><h3>ETDAH-AD</h3><button class="btn-icon" id="download-etdah-chart"><img src="https://img.icons8.com/ios-glyphs/24/000000/download.png" alt="Download"/></button></div><canvas id="etdah-ad-chart"></canvas></div>`;
 
                             const ctx = document.getElementById('etdah-ad-chart').getContext('2d');
-                            const chart = new Chart(ctx, {
+                            activeChart = new Chart(ctx, {
                                 type: 'bar',
                                 data: {
                                     labels: chartLabels,
@@ -1571,14 +1592,15 @@ FSLaudosApp.pageLogic = (() => {
                                     }]
                                 },
                                 options: {
-                                    responsive: true, maintainAspectRatio: false,
+                                    responsive: true, 
+                                    maintainAspectRatio: true,
                                     scales: { y: { beginAtZero: true, suggestedMax: 70 } },
                                     plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', font: { weight: 'bold' }, color: '#333' } }
                                 }
                             });
                              document.getElementById('download-etdah-chart').onclick = () => {
                                 const a = document.createElement('a');
-                                a.href = chart.toBase64Image();
+                                a.href = activeChart.toBase64Image();
                                 a.download = `grafico_etdah-ad_${laudoDataAtual.pacienteNome.replace(/ /g, '_')}.png`;
                                 a.click();
                             };
