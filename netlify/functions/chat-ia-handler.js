@@ -34,15 +34,19 @@ exports.handler = async function (event, context) {
         // Extrai os trechos (snippets) dos 3 principais resultados da busca
         const searchSnippets = searchData.items?.slice(0, 3).map(item => item.snippet).join('\n\n');
         
+        // [CORREÇÃO AQUI]
+        // Se a busca não retornar nada, agora retornamos um JSON de erro.
         if (!searchSnippets || searchSnippets.length === 0) {
-            return { statusCode: 500, headers, body: 'Não consegui encontrar informações sobre isso na web.' };
+            return { 
+                statusCode: 404, // 404 Not Found é mais apropriado aqui
+                headers, 
+                body: JSON.stringify({ error: 'Não consegui encontrar informações sobre isso na web. Tente uma pergunta mais específica.' })
+            };
         }
 
         // --- ETAPA 2: ENVIAR DADOS PARA O GEMINI GERAR UMA RESPOSTA ---
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`;
         
-        // O "prompt" é a instrução que damos à IA.
-        // Pedimos para ela agir como um especialista e responder à pergunta usando os dados da busca.
         const prompt = `
             Você é um assistente especialista em psicologia e neurociências.
             Com base nos seguintes dados extraídos da web, responda à pergunta do usuário de forma clara, concisa e informativa.
@@ -67,7 +71,15 @@ exports.handler = async function (event, context) {
 
         const geminiData = await geminiResponse.json();
         
-        // Extrai o texto gerado pelo Gemini
+        // Adiciona uma verificação para o caso de a API Gemini não retornar um candidato
+        if (!geminiData.candidates || geminiData.candidates.length === 0) {
+             return { 
+                statusCode: 500,
+                headers, 
+                body: JSON.stringify({ error: 'A IA não conseguiu gerar uma resposta com base nos dados encontrados.' })
+            };
+        }
+        
         const aiResponseText = geminiData.candidates[0].content.parts[0].text;
 
         // --- ETAPA 3: RETORNAR A RESPOSTA PARA O FRONT-END ---
