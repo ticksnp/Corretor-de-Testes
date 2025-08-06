@@ -1,7 +1,7 @@
-// Importa o 'fetch' que não é nativo em ambientes Node.js mais antigos
+// functions/chat-ia-handler.js
+
 const fetch = require('node-fetch');
 
-// Função auxiliar para chamar a API Gemini
 async function callGeminiAPI(requestBody, apiKey, modelName) {
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     const response = await fetch(geminiUrl, {
@@ -23,7 +23,6 @@ exports.handler = async function (event, context) {
         return { statusCode: 200, headers, body: JSON.stringify({ message: 'Successful preflight call.' }) };
     }
     
-    // [MODIFICADO] Recebe o histórico, a pergunta e a imagem (opcional)
     const { history, query, image } = JSON.parse(event.body);
     if (!query && !image) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Nenhuma pergunta ou imagem fornecida.' }) };
@@ -31,13 +30,17 @@ exports.handler = async function (event, context) {
 
     try {
         let geminiRequestBody;
+        // [CORREÇÃO] Instrução de sistema para dar um papel claro à IA
+        const systemInstruction = {
+            role: "system",
+            parts: [{ text: "Você é um assistente prestativo e conciso, especialista em psicologia e neurodesenvolvimento. Responda às perguntas do usuário com base no histórico da conversa." }]
+        };
 
         if (image) {
-            // --- LÓGICA PARA ANÁLISE DE IMAGEM ---
             const userPrompt = query || "Descreva esta imagem em detalhes, focando em qualquer texto ou dado que possa ser relevante para um laudo psicológico.";
-            
             geminiRequestBody = {
                 contents: [
+                    systemInstruction,
                     ...history,
                     {
                         role: 'user',
@@ -49,36 +52,39 @@ exports.handler = async function (event, context) {
                 ]
             };
         } else {
-            // --- LÓGICA PARA BUSCA NA WEB (EXISTENTE) ---
             const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=${process.env.SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`;
             const searchResponse = await fetch(searchUrl);
             const searchData = await searchResponse.json();
-            const searchSnippets = searchData.items?.slice(0, 3).map(item => item.snippet).join('\n\n');
-            const webDataContext = searchSnippets ? `Dados da web para contexto: ${searchSnippets}` : 'Não foram encontrados dados na web.';
-
-            const prompt = `${webDataContext}\nCom base no contexto acima e no histórico da conversa, responda à pergunta: "${query}"`;
+            const searchSnippets = searchData.items?.slice(0, 3).map(item => `Trecho: ${item.snippet}`).join('\n');
             
+            // [CORREÇÃO] O prompt agora é mais direto e o contexto web é opcional.
+            const finalPrompt = `Pergunta do usuário: "${query}".\n\nSe o contexto da web a seguir for útil, use-o para refinar sua resposta. Senão, ignore-o.\nContexto da Web:\n${searchSnippets || 'Nenhum'}`;
+
             geminiRequestBody = {
                 contents: [
-                    ...history,
-                    { role: 'user', parts: [{ text: prompt }] }
+                    systemInstruction,
+                    ...history, // Envia o histórico completo
+                    { role: 'user', parts: [{ text: finalPrompt }] } // Adiciona a nova pergunta
                 ]
             };
         }
 
         let geminiData = await callGeminiAPI(geminiRequestBody, process.env.GEMINI_API_KEY, 'gemini-1.5-flash-latest');
         
-        if (geminiData.error) {
-            console.error('Erro retornado pela API Gemini:', JSON.stringify(geminiData, null, 2));
-            return { 
-                statusCode: 500,
-                headers, 
-                body: JSON.stringify({ error: `A IA retornou um erro: ${geminiData.error.message}` })
-            };
-        }
-        if (geminiData.error && (geminiData.error.status === 'UNAVAILABLE' || geminiData.error.code === 503)) {
-            console.warn('Modelo principal sobrecarregado, tentando fallback para gemini-1.0-pro...');
-            geminiData = await callGeminiAPI(geminiRequestBody, process.env.GEMINI_API_KEY, 'gemini-1.0-pro');
+        if (geminiData.error || !geminiData.candidates || geminiData.candidates.length === 0) {
+            console.error('Erro ou resposta vazia da API Gemini:', JSON.stringify(geminiData, null, 2));
+            const errorMessage = geminiData.error ? geminiData.error.message : 'A IA não forneceu uma resposta.';
+            
+            if (geminiData.error?.status === 'UNAVAILABLE' || geminiData.error?.code === 503) {
+                 console.warn('Modelo principal sobrecarregado, tentando fallback...');
+                 geminiData = await callGeminiAPI(geminiRequestBody, process.env.GEMINI_API_KEY, 'gemini-1.0-pro');
+            } else {
+                return { 
+                    statusCode: 500,
+                    headers, 
+                    body: JSON.stringify({ error: `A IA retornou um erro: ${errorMessage}` })
+                };
+            }
         }
         
         const aiResponseText = geminiData.candidates[0].content.parts[0].text;

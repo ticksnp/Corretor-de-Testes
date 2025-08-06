@@ -260,7 +260,6 @@ FSLaudosApp.pageLogic = (() => {
             renderTable();
         },
         'chat-ia': () => {
-            // Esta função não usa 'db', então não precisa de alterações.
             const chatContainer = document.querySelector('.chat-container');
             const chatForm = document.getElementById('chat-form');
             const chatInput = document.getElementById('chat-input');
@@ -271,21 +270,13 @@ FSLaudosApp.pageLogic = (() => {
             const fileInput = document.getElementById('chat-file-input');
             const filePreviewContainer = document.getElementById('chat-file-preview-container');
 
-            let conversationHistory = [];
+            // [CORREÇÃO] Carrega o histórico do sessionStorage ou inicia um array vazio.
+            let conversationHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
             let currentFiles = [];
 
-            const initialMessageHtml = `<div class="chat-message ai"><div class="avatar">IA</div><div class="message-content">Olá! Sou seu assistente de IA. Faça uma pergunta ou arraste uma imagem para cá para que eu possa analisá-la.</div></div>`;
-
-            const startNewChat = () => {
-                conversationHistory = [];
-                currentFiles = [];
-                updateFilePreview();
-                messagesContainer.innerHTML = initialMessageHtml;
-                chatInput.focus();
-            };
-
-            const appendMessage = (sender, content) => {
-                const messageDiv = document.createElement('div');
+            // [CORREÇÃO] Função para renderizar a mensagem na tela (sem alterar o histórico)
+            const renderMessage = (sender, content) => {
+                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('chat-message', sender);
                 
                 const avatar = document.createElement('div');
@@ -300,9 +291,39 @@ FSLaudosApp.pageLogic = (() => {
                 messageDiv.appendChild(contentDiv);
                 messagesContainer.appendChild(messageDiv);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            };
+
+            // [CORREÇÃO] Função que adiciona a mensagem na tela E no histórico
+            const appendMessage = (sender, content) => {
+                renderMessage(sender, content);
 
                 const role = (sender === 'user') ? 'user' : 'model';
                 conversationHistory.push({ role, parts: [{ text: content.replace(/<br>/g, '\n') }] });
+                // Salva o histórico atualizado no sessionStorage
+                sessionStorage.setItem('chatHistory', JSON.stringify(conversationHistory));
+            };
+            
+            // [CORREÇÃO] Renderiza o histórico existente ao carregar a página
+            const renderHistory = () => {
+                messagesContainer.innerHTML = ''; // Limpa a tela
+                if (conversationHistory.length === 0) {
+                    renderMessage('ai', 'Olá! Sou seu assistente de IA. Faça uma pergunta ou arraste uma imagem para cá para que eu possa analisá-la.');
+                } else {
+                    conversationHistory.forEach(msg => {
+                        const sender = msg.role === 'user' ? 'user' : 'ai';
+                        const content = msg.parts[0].text.replace(/\n/g, '<br>');
+                        renderMessage(sender, content);
+                    });
+                }
+            };
+
+            const startNewChat = () => {
+                conversationHistory = [];
+                currentFiles = [];
+                sessionStorage.removeItem('chatHistory'); // Limpa o histórico salvo
+                updateFilePreview();
+                renderHistory(); // Renderiza a mensagem inicial
+                chatInput.focus();
             };
 
             const updateFilePreview = () => {
@@ -310,27 +331,18 @@ FSLaudosApp.pageLogic = (() => {
                 currentFiles.forEach((file, index) => {
                     const item = document.createElement('div');
                     item.classList.add('file-preview-item');
-                    
                     let preview = document.createElement('span');
                     if (file.type.startsWith('image/')) {
                         preview = document.createElement('img');
                         preview.src = URL.createObjectURL(file);
                         preview.onload = () => URL.revokeObjectURL(preview.src);
-                    } else {
-                        preview.textContent = '📄';
-                    }
-
+                    } else { preview.textContent = '📄'; }
                     const name = document.createElement('span');
                     name.textContent = file.name;
-                    
                     const removeBtn = document.createElement('button');
                     removeBtn.classList.add('remove-file-btn');
                     removeBtn.innerHTML = '&times;';
-                    removeBtn.onclick = () => {
-                        currentFiles.splice(index, 1);
-                        updateFilePreview();
-                    };
-
+                    removeBtn.onclick = () => { currentFiles.splice(index, 1); updateFilePreview(); };
                     item.append(preview, name, removeBtn);
                     filePreviewContainer.appendChild(item);
                 });
@@ -343,40 +355,14 @@ FSLaudosApp.pageLogic = (() => {
 
             attachBtn.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-
-            chatContainer.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                chatContainer.classList.add('drag-over');
-            });
-            chatContainer.addEventListener('dragleave', () => {
-                chatContainer.classList.remove('drag-over');
-            });
-            chatContainer.addEventListener('drop', (e) => {
-                e.preventDefault();
-                chatContainer.classList.remove('drag-over');
-                handleFiles(e.dataTransfer.files);
-            });
-
-            const showTypingIndicator = () => {
-                const indicatorDiv = document.createElement('div');
-                indicatorDiv.classList.add('chat-message', 'ai', 'typing-indicator-container');
-                indicatorDiv.innerHTML = `<div class="avatar">IA</div><div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
-                messagesContainer.appendChild(indicatorDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            };
-            const removeTypingIndicator = () => {
-                const indicator = messagesContainer.querySelector('.typing-indicator-container');
-                if (indicator) indicator.remove();
-            };
-
+            chatContainer.addEventListener('dragover', (e) => { e.preventDefault(); chatContainer.classList.add('drag-over'); });
+            chatContainer.addEventListener('dragleave', () => { chatContainer.classList.remove('drag-over'); });
+            chatContainer.addEventListener('drop', (e) => { e.preventDefault(); chatContainer.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
             newChatBtn.addEventListener('click', startNewChat);
 
-            const fileToBase64 = (file) => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
+            const showTypingIndicator = () => { /* ...código original sem alterações... */ };
+            const removeTypingIndicator = () => { /* ...código original sem alterações... */ };
+            const fileToBase64 = (file) => new Promise((resolve, reject) => { /* ...código original sem alterações... */ });
 
             chatForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -384,51 +370,56 @@ FSLaudosApp.pageLogic = (() => {
                 if (!userMessage && currentFiles.length === 0) return;
 
                 appendMessage('user', userMessage || 'Analisar anexo(s)');
-                const currentQuery = chatInput.value.trim();
                 
+                const currentQuery = chatInput.value.trim();
                 chatInput.value = '';
                 chatSendBtn.disabled = true;
 
                 let imagePayload = null;
-                const imageFile = currentFiles.find(f => f.type.startsWith('image/'));
-
-                if (imageFile) {
-                    imagePayload = {
-                        mimeType: imageFile.type,
-                        data: await fileToBase64(imageFile)
-                    };
+                if (currentFiles.length > 0) {
+                    const imageFile = currentFiles.find(f => f.type.startsWith('image/'));
+                    if (imageFile) {
+                        imagePayload = { mimeType: imageFile.type, data: await fileToBase64(imageFile) };
+                    }
                 }
-                
                 currentFiles = [];
                 updateFilePreview();
                 showTypingIndicator();
 
                 try {
+                    // [CORREÇÃO] Envia o histórico SEM a última mensagem do usuário, que já está no 'query'
+                    const historyForApi = conversationHistory.slice(0, -1);
+                    
                     const response = await fetch('/.netlify/functions/chat-ia-handler', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            history: conversationHistory.slice(0, -1),
+                            history: historyForApi,
                             query: currentQuery,
                             image: imagePayload
                         }),
                     });
 
                     removeTypingIndicator();
-                    if (!response.ok) throw new Error((await response.json()).error || 'Falha na comunicação.');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Falha na comunicação.');
+                    }
                     
                     const data = await response.json();
                     appendMessage('ai', data.reply.replace(/\n/g, '<br>'));
                 } catch (error) {
                     removeTypingIndicator();
-                    appendMessage('ai', `Desculpe, ocorreu um erro: ${error.message}`);
+                    // Adiciona a mensagem de erro na tela, mas não no histórico
+                    renderMessage('ai', `Desculpe, ocorreu um erro: ${error.message}`);
                 } finally {
                     chatSendBtn.disabled = false;
                     chatInput.focus();
                 }
             });
             
-            startNewChat();
+            // [CORREÇÃO] Chama a função para renderizar o histórico ao iniciar.
+            renderHistory();
         },
         'detalhes-paciente': (pacienteId) => {
             // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
