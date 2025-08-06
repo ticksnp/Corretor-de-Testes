@@ -46,10 +46,9 @@ FSLaudosApp.calculateAgeInYearsAtDate = (dobString, appDateString) => {
 };
 
 FSLaudosApp.pageLogic = (() => {
-    const db = FSLaudosApp.db;
-    let activeChart = null; // Variável global para manter a instância do gráfico ativo
-
-    // Função para destruir o gráfico anterior antes de criar um novo
+    // [REMOVIDO] A definição da variável 'db' que estava aqui foi removida.
+    
+    let activeChart = null;
     const destroyActiveChart = () => {
         if (activeChart) {
             activeChart.destroy();
@@ -59,9 +58,13 @@ FSLaudosApp.pageLogic = (() => {
     
     return {
         laudos: () => {
+            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
+            const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido na página de Laudos."); return; }
+
             const { testForms } = FSLaudosApp;
             const appContent = document.getElementById('app-content');
+            
             const renderLaudosTable = () => {
                 const tableBody = document.getElementById('laudos-table-body');
                 if (!tableBody) return;
@@ -97,6 +100,7 @@ FSLaudosApp.pageLogic = (() => {
                     tableBody.innerHTML = '<tr><td colspan="4">Erro ao carregar os laudos.</td></tr>';
                 });
             };
+
             const handleModal = async (laudoId = null) => {
                 const modalOverlay = document.getElementById('novo-laudo-modal-overlay');
                 if (!modalOverlay) return;
@@ -174,7 +178,9 @@ FSLaudosApp.pageLogic = (() => {
                 });
                 modalOverlay.classList.remove('hidden');
             };
+
             renderLaudosTable();
+
             appContent.addEventListener('click', (event) => {
                 const target = event.target;
                 if (target.id === 'novo-laudo-btn' || target.closest('#novo-laudo-btn')) {
@@ -191,10 +197,14 @@ FSLaudosApp.pageLogic = (() => {
             });
         },
         pacientes: () => {
-             if (!db) { console.error("DB não está definido na página de Pacientes."); return; }
+            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
+            const db = FSLaudosApp.db;
+            if (!db) { console.error("DB não está definido na página de Pacientes."); return; }
+
             const modalOverlay = document.getElementById('novo-paciente-modal-overlay');
             const form = document.getElementById('novo-paciente-form');
             const tableBody = document.getElementById('pacientes-table-body');
+            
             const renderTable = () => {
                 if (!tableBody) return;
                 tableBody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>';
@@ -215,15 +225,19 @@ FSLaudosApp.pageLogic = (() => {
                     tableBody.innerHTML = '<tr><td colspan="3">Erro ao carregar pacientes.</td></tr>';
                 });
             };
+
             const openModal = () => modalOverlay.classList.remove('hidden');
             const closeModal = () => modalOverlay.classList.add('hidden');
+
             document.getElementById('novo-paciente-btn').addEventListener('click', openModal);
             document.getElementById('close-paciente-modal-btn').addEventListener('click', closeModal);
             document.getElementById('cancel-paciente-btn').addEventListener('click', closeModal);
+            
             const campoNascimento = document.getElementById('paciente-form-nascimento');
             if (campoNascimento) {
                 campoNascimento.addEventListener('input', () => FSLaudosApp.formatDateInput(campoNascimento));
             }
+            
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const pacienteData = {
@@ -246,6 +260,7 @@ FSLaudosApp.pageLogic = (() => {
             renderTable();
         },
         'chat-ia': () => {
+            // Esta função não usa 'db', então não precisa de alterações.
             const chatContainer = document.querySelector('.chat-container');
             const chatForm = document.getElementById('chat-form');
             const chatInput = document.getElementById('chat-input');
@@ -416,6 +431,8 @@ FSLaudosApp.pageLogic = (() => {
             startNewChat();
         },
         'detalhes-paciente': (pacienteId) => {
+            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
+            const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido em Detalhes do Paciente."); return; }
             if (!pacienteId) return;
 
@@ -614,6 +631,7 @@ FSLaudosApp.pageLogic = (() => {
             }
         },
         'configuracoes-laudo': () => {
+            // Esta função não usa 'db', então não precisa de alterações.
             const saveButton = document.getElementById('save-config-btn');
             const logoUploadInput = document.getElementById('logo-upload-input');
             const logoPreviewContainer = document.getElementById('logo-preview-container');
@@ -682,7 +700,10 @@ FSLaudosApp.pageLogic = (() => {
             loadConfig();
         },
         'preenchimento-laudo': (laudoId) => {
+            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
+            const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido no Preenchimento de Laudo."); return; }
+            
             const { testForms, baremos } = FSLaudosApp;
 
             if (!laudoId) {
