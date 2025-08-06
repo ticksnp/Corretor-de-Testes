@@ -7,71 +7,80 @@
     <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-box">
-            <!-- Formulário de Login (Padrão) -->
-            <form id="login-form">
-                <h2>Login</h2>
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="login-password">Senha</label>
-                    <input type="password" id="login-password" required>
-                </div>
-                <button type="submit" class="btn-login">Entrar</button>
-                <div class="links">
-                    <a href="#" id="forgot-password-link">Esqueci minha senha</a>
-                    <a href="#" id="signup-link">Primeiro acesso? Cadastre-se</a>
-                </div>
-            </form>
+    <!-- [REESCRITO] Nova estrutura com dois painéis -->
+    <div class="login-page-container">
+        
+        <!-- Painel Esquerdo: Formulário -->
+        <div class="form-panel">
+            <div class="login-box">
+                <!-- Formulário de Login (Padrão) -->
+                <form id="login-form">
+                    <h2>Login</h2>
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Senha</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn-login">Entrar</button>
+                    <div class="links">
+                        <a href="#" id="forgot-password-link">Esqueci minha senha</a>
+                        <a href="#" id="signup-link">Primeiro acesso? Cadastre-se</a>
+                    </div>
+                </form>
 
-            <!-- Formulário de Cadastro (Oculto) -->
-            <form id="signup-form" class="hidden">
-                <h2>Cadastro</h2>
-                <div class="form-group">
-                    <label for="signup-email">Email</label>
-                    <input type="email" id="signup-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="signup-password">Senha (mínimo 6 caracteres)</label>
-                    <input type="password" id="signup-password" required minlength="6">
-                </div>
-                 <div class="form-group">
-                    <label for="signup-confirm-password">Confirmar Senha</label>
-                    <input type="password" id="signup-confirm-password" required>
-                </div>
-                <button type="submit" class="btn-login">Cadastrar</button>
-                <div class="links">
-                    <a href="#" id="back-to-login-from-signup">Voltar para o Login</a>
-                </div>
-            </form>
+                <!-- Formulário de Cadastro (Oculto) -->
+                <form id="signup-form" class="hidden">
+                    <h2>Cadastro</h2>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Senha (mínimo 6 caracteres)</label>
+                        <input type="password" id="signup-password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirmar Senha</label>
+                        <input type="password" id="signup-confirm-password" required>
+                    </div>
+                    <button type="submit" class="btn-login">Cadastrar</button>
+                    <div class="links">
+                        <a href="#" id="back-to-login-from-signup">Voltar para o Login</a>
+                    </div>
+                </form>
 
-            <!-- Formulário de Redefinição de Senha (Oculto) -->
-            <form id="reset-form" class="hidden">
-                <h2>Redefinir Senha</h2>
-                <p class="reset-info">Insira seu e-mail e enviaremos um link para você voltar a acessar sua conta.</p>
-                <div class="form-group">
-                    <label for="reset-email">Email</label>
-                    <input type="email" id="reset-email" required>
-                </div>
-                <button type="submit" class="btn-login">Enviar Link de Redefinição</button>
-                <div class="links">
-                    <a href="#" id="back-to-login-from-reset">Voltar para o Login</a>
-                </div>
-            </form>
-            
-            <p id="auth-message"></p>
+                <!-- Formulário de Redefinição de Senha (Oculto) -->
+                <form id="reset-form" class="hidden">
+                    <h2>Redefinir Senha</h2>
+                    <p class="reset-info">Insira seu e-mail e enviaremos um link para você voltar a acessar sua conta.</p>
+                    <div class="form-group">
+                        <label for="reset-email">Email</label>
+                        <input type="email" id="reset-email" required>
+                    </div>
+                    <button type="submit" class="btn-login">Enviar Link de Redefinição</button>
+                    <div class="links">
+                        <a href="#" id="back-to-login-from-reset">Voltar para o Login</a>
+                    </div>
+                </form>
+                
+                <p id="auth-message"></p>
+            </div>
         </div>
+
+        <!-- Painel Direito: Imagem -->
+        <div class="image-panel">
+            <!-- Este painel fica vazio, o fundo é controlado pelo CSS -->
+        </div>
+
     </div>
 
-    <!-- [CORREÇÃO] Scripts movidos para o final do body -->
-    <!-- Bibliotecas Externas Primeiro -->
+    <!-- Scripts da Aplicação (ordem correta, no final do body) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     
-    <!-- Scripts da Aplicação Depois -->
     <script> const FSLaudosApp = {}; </script>
     <script src="js/firebase-config.js"></script>
     <script src="js/login.js"></script>

@@ -6,33 +6,42 @@ body {
     font-family: 'Roboto', sans-serif;
     color: #333;
     font-size: 15px;
-    /* [INSTRUÇÃO] Sua imagem de fundo continua aqui. */
-    background-image: url('/images/background-login.jpg'); 
-    background-color: #fdfaf6; /* Cor de fallback caso a imagem não carregue */
+    /* [REMOVIDO] A imagem de fundo foi removida do body */
+}
+
+/* [NOVO] Container principal que divide a tela */
+.login-page-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* [NOVO] Painel esquerdo que contém o formulário */
+.form-panel {
+    flex-basis: 40%; /* O painel do formulário ocupará 40% da tela */
+    min-width: 450px; /* Garante que o formulário não fique muito espremido */
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+/* [NOVO] Painel direito que exibe a imagem de fundo */
+.image-panel {
+    flex-grow: 1; /* Ocupa o restante do espaço */
+    background-image: url('/images/background-login.jpg'); /* Sua imagem de fundo vai aqui */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
-.login-container {
-    display: flex;
-    /* [CORREÇÃO] Alinhamento do container principal */
-    justify-content: flex-start; /* Alinha o conteúdo à esquerda */
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px 10vw; /* Adiciona um espaçamento nas laterais */
-    box-sizing: border-box;
-}
-
+/* [MODIFICADO] Estilos para a caixa do formulário, agora mais simples */
 .login-box {
     width: 100%;
     max-width: 400px;
-    padding: 35px 40px;
-    background-color: rgba(255, 255, 255, 0.98);
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    /* Removidos background, box-shadow e backdrop-filter, pois o painel já é branco */
 }
 
 h2 {
@@ -132,4 +141,18 @@ h2 {
 
 .hidden {
     display: none;
+}
+
+/* [NOVO] Estilos para telas menores (celulares) */
+@media (max-width: 900px) {
+    /* Em telas menores, o painel da imagem some e o formulário ocupa tudo */
+    .image-panel {
+        display: none;
+    }
+
+    .form-panel {
+        flex-basis: 100%;
+        min-width: unset;
+        padding: 20px;
+    }
 }
