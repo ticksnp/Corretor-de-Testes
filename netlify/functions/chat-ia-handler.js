@@ -30,26 +30,29 @@ exports.handler = async function (event, context) {
 
     try {
         let geminiRequestBody;
-        // [CORREÇÃO] Instrução de sistema para dar um papel claro à IA
+        
+        // [CORREÇÃO] A instrução de sistema agora é um objeto separado.
+        // O campo 'role' foi removido, pois será uma propriedade de nível superior.
         const systemInstruction = {
-            role: "system",
             parts: [{ text: "Você é um assistente prestativo e conciso, especialista em psicologia e neurodesenvolvimento. Responda às perguntas do usuário com base no histórico da conversa." }]
         };
 
         if (image) {
             const userPrompt = query || "Descreva esta imagem em detalhes, focando em qualquer texto ou dado que possa ser relevante para um laudo psicológico.";
+            
+            // [CORREÇÃO] 'systemInstruction' é agora uma propriedade de nível superior no corpo da requisição.
             geminiRequestBody = {
                 contents: [
-                    systemInstruction,
-                    ...history,
+                    ...history, // O histórico de mensagens
                     {
-                        role: 'user',
+                        role: 'user', // A nova mensagem do usuário
                         parts: [
                             { text: userPrompt },
                             { inline_data: { mime_type: image.mimeType, data: image.data } }
                         ]
                     }
-                ]
+                ],
+                systemInstruction: systemInstruction
             };
         } else {
             const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=${process.env.SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`;
@@ -57,15 +60,15 @@ exports.handler = async function (event, context) {
             const searchData = await searchResponse.json();
             const searchSnippets = searchData.items?.slice(0, 3).map(item => `Trecho: ${item.snippet}`).join('\n');
             
-            // [CORREÇÃO] O prompt agora é mais direto e o contexto web é opcional.
             const finalPrompt = `Pergunta do usuário: "${query}".\n\nSe o contexto da web a seguir for útil, use-o para refinar sua resposta. Senão, ignore-o.\nContexto da Web:\n${searchSnippets || 'Nenhum'}`;
-
+            
+            // [CORREÇÃO] 'systemInstruction' também é uma propriedade de nível superior aqui.
             geminiRequestBody = {
                 contents: [
-                    systemInstruction,
-                    ...history, // Envia o histórico completo
-                    { role: 'user', parts: [{ text: finalPrompt }] } // Adiciona a nova pergunta
-                ]
+                    ...history, 
+                    { role: 'user', parts: [{ text: finalPrompt }] }
+                ],
+                systemInstruction: systemInstruction
             };
         }
 
@@ -75,8 +78,9 @@ exports.handler = async function (event, context) {
             console.error('Erro ou resposta vazia da API Gemini:', JSON.stringify(geminiData, null, 2));
             const errorMessage = geminiData.error ? geminiData.error.message : 'A IA não forneceu uma resposta.';
             
-            if (geminiData.error?.status === 'UNAVAILABLE' || geminiData.error?.code === 503) {
-                 console.warn('Modelo principal sobrecarregado, tentando fallback...');
+            // Tentativa de fallback, caso o modelo principal falhe
+            if (geminiData.error?.status === 'UNAVAILABLE' || geminiData.error?.code === 503 || errorMessage.includes('system role is not supported')) {
+                 console.warn('Modelo principal falhou ou não suporta a instrução de sistema, tentando fallback...');
                  geminiData = await callGeminiAPI(geminiRequestBody, process.env.GEMINI_API_KEY, 'gemini-1.0-pro');
             } else {
                 return { 
@@ -87,6 +91,17 @@ exports.handler = async function (event, context) {
             }
         }
         
+        // Verifica novamente se o fallback também deu erro.
+        if (geminiData.error || !geminiData.candidates || geminiData.candidates.length === 0) {
+             console.error('Erro na API Gemini mesmo após o fallback:', JSON.stringify(geminiData, null, 2));
+             const fallbackErrorMessage = geminiData.error ? geminiData.error.message : 'A IA não forneceu uma resposta.';
+             return { 
+                statusCode: 500,
+                headers, 
+                body: JSON.stringify({ error: `Erro na IA após fallback: ${fallbackErrorMessage}` })
+            };
+        }
+
         const aiResponseText = geminiData.candidates[0].content.parts[0].text;
 
         return {
