@@ -5,14 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - FS Laudos</title>
     <link rel="stylesheet" href="css/login.css">
-    <!-- Scripts do Firebase (essenciais para esta página) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js" defer></script>
-    
-    <!-- Configuração do Firebase e lógica da página -->
-    <script> const FSLaudosApp = {}; </script>
-    <script src="js/firebase-config.js" defer></script>
-    <script src="js/login.js" defer></script>
 </head>
 <body>
     <div class="login-container">
@@ -73,5 +65,15 @@
             <p id="auth-message"></p>
         </div>
     </div>
+
+    <!-- [CORREÇÃO] Scripts movidos para o final do body -->
+    <!-- Bibliotecas Externas Primeiro -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    
+    <!-- Scripts da Aplicação Depois -->
+    <script> const FSLaudosApp = {}; </script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/login.js"></script>
 </body>
 </html>

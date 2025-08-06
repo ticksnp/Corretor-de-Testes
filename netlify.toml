@@ -1,0 +1,32 @@
+# netlify.toml
+
+# Configuração de Build (pode deixar como está)
+[build]
+  command = "" # Sem comando de build para site estático
+  publish = "."  # Publicar o diretório raiz
+
+# Regras de redirecionamento e reescrita
+[[redirects]]
+  # Se o usuário não estiver logado e tentar acessar a raiz ou /index.html,
+  # mande-o para a página de login.
+  from = "/"
+  to = "/login.html"
+  status = 200 # Usa um "rewrite", não um redirecionamento 301.
+  force = false # Não força se um arquivo já existir em "/" (não é o caso aqui)
+  
+[[redirects]]
+  from = "/index.html"
+  to = "/login.html"
+  status = 200
+  force = false
+
+# Regra para Aplicação de Página Única (SPA)
+# APÓS o login, se o usuário recarregar a página em /#pacientes, por exemplo,
+# esta regra garante que o Netlify sirva o index.html para o roteador JS funcionar.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  # A condição abaixo é a chave: só aplica esta regra se a rota solicitada não for um arquivo real.
+  # Isso impede que a regra capture /login.html, /css/style.css, etc.
+  conditions = { "path" = "!/.*\\..*$/" }
