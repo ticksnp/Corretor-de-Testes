@@ -13,6 +13,8 @@
                 <img src="/images/logo.png" alt="Laudos Logo">
                 <span class="logo-text">Laudos</span>
             </div>
+            
+            <!-- [CORREÇÃO] A lista de navegação agora ocupa o espaço disponível -->
             <ul id="nav-menu">
                 <li><a href="#laudos" data-page="laudos" class="nav-link">Laudos</a></li>
                 <li><a href="#pacientes" data-page="pacientes" class="nav-link">Pacientes</a></li>
@@ -23,16 +25,18 @@
                         <li><a href="#configuracoes-laudo" data-page="configuracoes-laudo" class="nav-link">Laudo</a></li>
                     </ul>
                 </li>
-                <li><a href="#" id="logout-btn">Sair</a></li>
             </ul>
+
+            <!-- [CORREÇÃO] Botão 'Sair' movido para fora da <ul> e para o final da <nav> -->
+            <a href="#" id="logout-btn">Sair</a>
+
         </nav>
         <main id="app-content" class="content">
             <p>Verificando autenticação...</p>
         </main>
     </div>
 
-    <!-- [CORREÇÃO] Scripts movidos para o final do body -->
-    <!-- Bibliotecas Externas Primeiro -->
+    <!-- Scripts da Aplicação (ordem correta, no final do body) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
@@ -43,7 +47,6 @@
     <script src="js/docxtemplater.min.js"></script>
     <script src="js/image-module.min.js"></script>
     
-    <!-- Scripts da Aplicação Depois -->
     <script> const FSLaudosApp = {}; </script>
     <script src="js/firebase-config.js"></script>
     <script src="js/baremos.js"></script>

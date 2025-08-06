@@ -52,6 +52,11 @@ body {
     margin: 20px 0;
 }
 
+/* [CORREÇÃO] Faz a lista de navegação crescer e ocupar o espaço disponível */
+#nav-menu {
+    flex-grow: 1;
+}
+
 .sidebar ul li a {
     display: block;
     padding: 14px 20px;
@@ -102,11 +107,11 @@ body {
 /* ==========================================================================
    3. CONTEÚDO PRINCIPAL E COMPONENTES GERAIS
    ========================================================================== */
+/* ... (todo o resto do seu CSS permanece igual) ... */
 .content {
     flex-grow: 1;
     padding: 24px;
 }
-
 h1 {
     font-size: 26px;
     margin-bottom: 20px;
@@ -849,20 +854,20 @@ p#header-idade-paciente {
 /* ==========================================================================
    10. ESTILOS DE AUTENTICAÇÃO
    ========================================================================== */
-#nav-menu #logout-btn {
+#logout-btn {
     display: block;
-    padding: 14px 20px;
+    padding: 18px 20px; /* Mais padding para destacar */
+    margin: 10px; /* Margem para não colar nas bordas */
+    text-align: center;
     text-decoration: none;
     color: #555;
     font-weight: 500;
     transition: all 0.2s ease-in-out;
-    border-left: 3px solid transparent;
+    border-radius: 8px;
     cursor: pointer;
-    margin-top: 20px; /* Adiciona um espaço acima */
 }
 
-#nav-menu #logout-btn:hover {
+#logout-btn:hover {
     background-color: #ffebee; /* Um vermelho claro para indicar ação de "saída" */
     color: #d32f2f;
-    border-left-color: #d32f2f;
 }
