@@ -1,76 +1,83 @@
 // js/app.js
 
-// [REESCRITO] O evento 'load' agora aciona o verificador de autenticação.
 window.addEventListener('load', () => {
-    // Espera o firebase-config.js carregar e inicializar o `auth`
-    const checkAuthReady = setInterval(() => {
-        if (FSLaudosApp.auth) {
-            clearInterval(checkAuthReady);
-            const auth = FSLaudosApp.auth;
-
-            // O onAuthStateChanged é o "portão" da sua aplicação.
-            auth.onAuthStateChanged(user => {
-                const appContent = document.getElementById('app-content');
-                if (!appContent) {
-                    console.error("Elemento 'app-content' não encontrado.");
-                    return;
-                }
-
-                if (user) {
-                    // --- USUÁRIO LOGADO ---
-                    // Se o usuário está logado, inicializa a aplicação principal.
-                    initializeApp();
-                } else {
-                    // --- USUÁRIO DESLOGADO ---
-                    // Se não há usuário, redireciona para a página de login.
-                    console.log('Nenhum usuário logado. Redirecionando para a página de login...');
-                    // Garante que não estamos já na página de login para evitar loops
-                    if (!window.location.pathname.includes('login.html')) {
-                        window.location.href = '/login.html';
-                    }
-                }
-            });
+    // [CORREÇÃO] A lógica de inicialização do Firebase foi movida para cá.
+    try {
+        // Verifica se o Firebase já foi inicializado para evitar erros
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase inicializado na aplicação principal.");
         }
-    }, 100);
+        // Anexa os serviços ao objeto global da aplicação
+        FSLaudosApp.auth = firebase.auth();
+        FSLaudosApp.db = firebase.firestore();
+        
+        // Agora que o Firebase está pronto, verifica o estado do login
+        checkAuthenticationAndRunApp();
+    } catch (error) {
+        console.error("ERRO CRÍTICO AO INICIALIZAR O FIREBASE NA APLICAÇÃO:", error);
+        const appContent = document.getElementById('app-content');
+        appContent.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: .25rem;">
+                <h2>Erro Crítico de Conexão</h2>
+                <p>A aplicação não conseguiu se conectar aos serviços em nuvem necessários para funcionar.</p>
+                <p>Por favor, verifique sua conexão com a internet e <strong>recarregue a página</strong>.</p>
+            </div>
+        `;
+    }
 });
 
-// [NOVO] Função que contém toda a lógica da aplicação principal.
-// Só será chamada se o usuário estiver autenticado.
-function initializeApp() {
+function checkAuthenticationAndRunApp() {
+    const auth = FSLaudosApp.auth;
+
+    // O onAuthStateChanged é o "portão" da sua aplicação.
+    auth.onAuthStateChanged(user => {
+        const appContent = document.getElementById('app-content');
+        if (!appContent) {
+            console.error("Elemento 'app-content' não encontrado.");
+            return;
+        }
+
+        if (user) {
+            // --- USUÁRIO LOGADO ---
+            // Se o usuário está logado, inicializa a lógica principal da aplicação.
+            initializeAppLogic();
+        } else {
+            // --- USUÁRIO DESLOGADO ---
+            // Se não há usuário, redireciona para a página de login.
+            console.log('Nenhum usuário logado. Redirecionando para a página de login...');
+            if (!window.location.pathname.includes('login.html')) {
+                window.location.href = '/login.html';
+            }
+        }
+    });
+}
+
+function initializeAppLogic() {
     try {
         const appContent = document.getElementById('app-content');
         const { views, pageLogic } = FSLaudosApp;
 
-        if (!appContent || !views || !pageLogic) {
-            console.error("ERRO CRÍTICO: Componentes essenciais da aplicação (app-content, views, pageLogic) não foram encontrados.");
-            document.body.innerHTML = "<h1>Erro Crítico na Aplicação. Verifique o console (F12).</h1>";
-            return;
+        if (!views || !pageLogic) {
+            throw new Error("Componentes essenciais da aplicação (views, pageLogic) não foram encontrados.");
         }
 
         const router = () => {
-            // (O conteúdo original da função router permanece o mesmo)
             try {
                 document.querySelectorAll('.sidebar .nav-link, .sidebar .submenu a').forEach(l => l.classList.remove('active'));
-
                 const hash = window.location.hash.slice(1) || 'laudos';
                 let [page, param] = hash.split('/');
 
-                if (page === 'laudo' && param) {
-                    page = 'preenchimento-laudo';
-                }
-                
-                if (page === 'paciente' && param) {
-                    page = 'detalhes-paciente';
-                }
+                if (page === 'laudo' && param) page = 'preenchimento-laudo';
+                if (page === 'paciente' && param) page = 'detalhes-paciente';
 
                 console.log(`Roteando para a página: '${page}' com o parâmetro: '${param}'`);
 
-                // Lógica de ativação do link no menu
                 let activeLink = document.querySelector(`.sidebar a[data-page="${page}"]`);
                 if (activeLink) {
                     activeLink.classList.add('active');
                     const parentSubmenu = activeLink.closest('.submenu');
-                    if(parentSubmenu){
+                    if (parentSubmenu) {
                         parentSubmenu.style.display = 'block';
                         parentSubmenu.previousElementSibling.classList.add('active');
                     }
@@ -98,35 +105,24 @@ function initializeApp() {
         window.addEventListener('hashchange', router);
         router(); // Executa o roteador pela primeira vez
 
-        // Lógica de menu dropdown
         const navMenu = document.getElementById('nav-menu');
         if (navMenu) {
             navMenu.addEventListener('click', (e) => {
-                const link = e.target.closest('.config-parent-link');
-                if (link) {
+                if (e.target.closest('.config-parent-link')) {
                     e.preventDefault();
-                    const submenu = link.nextElementSibling;
-                    if (submenu && submenu.classList.contains('submenu')) {
-                        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
-                    }
+                    const submenu = e.target.closest('.config-parent-link').nextElementSibling;
+                    submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
                 }
             });
         }
 
-        // [NOVO] Lógica de Logout
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                FSLaudosApp.auth.signOut().then(() => {
-                    console.log('Usuário deslogado com sucesso.');
-                    // O listener onAuthStateChanged cuidará do redirecionamento.
-                }).catch(error => {
-                    console.error('Erro ao fazer logout:', error);
-                });
+                FSLaudosApp.auth.signOut().catch(error => console.error('Erro ao fazer logout:', error));
             });
         }
-
     } catch (initError) {
         console.error("ERRO FATAL na inicialização do app.js:", initError);
         document.body.innerHTML = "<h1>Erro Fatal na Aplicação. Verifique o console (F12).</h1>";
