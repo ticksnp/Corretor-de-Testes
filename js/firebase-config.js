@@ -14,22 +14,19 @@ try {
   // Inicializa o Firebase
   firebase.initializeApp(firebaseConfig);
 
-  // [CORREÇÃO] Disponibiliza a instância do Firestore para ser usada em outros arquivos,
-  // anexando-a ao objeto global da aplicação. Isso corrige o erro 'db is not defined'.
+  // [MODIFICADO] Disponibiliza as instâncias dos serviços do Firebase para a aplicação.
+  // Isso garante que tanto o login.js quanto o app.js usem as mesmas instâncias.
   FSLaudosApp.db = firebase.firestore();
+  FSLaudosApp.auth = firebase.auth(); // Adiciona o serviço de autenticação
 
-  // Para conveniência, podemos ainda declarar a constante db, agora que temos certeza que ela existe.
-  const db = FSLaudosApp.db;
-
-  console.log("Firebase inicializado com sucesso.");
+  console.log("Firebase (Auth e Firestore) inicializado com sucesso.");
 
 } catch (error) {
   console.error("ERRO CRÍTICO AO INICIALIZAR O FIREBASE:", error);
-  // O erro `firebase is not defined` será capturado aqui se os scripts do CDN não carregarem.
   alert("Não foi possível carregar os serviços do Firebase. Verifique sua conexão com a internet e tente recarregar a página.");
   
-  // Exibe uma mensagem de erro clara na interface do usuário.
-  document.getElementById('app-content').innerHTML = `
+  const appContent = document.getElementById('app-content') || document.body;
+  appContent.innerHTML = `
     <div style="padding: 20px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: .25rem;">
         <h2>Erro Crítico de Conexão</h2>
         <p>A aplicação não conseguiu se conectar aos serviços em nuvem necessários para funcionar.</p>

@@ -846,3 +846,23 @@ p#header-idade-paciente {
 .header-container #new-chat-btn {
     margin-left: auto;
 }
+/* ==========================================================================
+   10. ESTILOS DE AUTENTICAÇÃO
+   ========================================================================== */
+#nav-menu #logout-btn {
+    display: block;
+    padding: 14px 20px;
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    margin-top: 20px; /* Adiciona um espaço acima */
+}
+
+#nav-menu #logout-btn:hover {
+    background-color: #ffebee; /* Um vermelho claro para indicar ação de "saída" */
+    color: #d32f2f;
+    border-left-color: #d32f2f;
+}
