@@ -3,7 +3,10 @@
 FSLaudosApp.views = {
     laudos: `
         <div class="header-container">
-            <h1>Laudos</h1><button id="novo-laudo-btn" class="btn btn-primary">+ Novo Laudo</button>
+            <h1>Laudos</h1>
+            <div class="header-actions">
+                <button id="novo-laudo-btn" class="btn btn-primary">+ Novo Laudo</button>
+            </div>
         </div>
         <div class="main-card">
             <div class="filter-section"><label for="search-input">Buscar:</label><input type="text" id="search-input" placeholder="Por favor, insira o nome do paciente..."><button id="clear-btn" class="btn btn-secondary">Limpar</button><button id="filter-btn" class="btn btn-primary">Filtrar</button></div>
@@ -32,7 +35,12 @@ FSLaudosApp.views = {
         </div>
     `,
     pacientes: `
-        <div class="header-container"><h1>Pacientes</h1><button id="novo-paciente-btn" class="btn btn-primary">+ Novo Paciente</button></div>
+        <div class="header-container">
+            <h1>Pacientes</h1>
+            <div class="header-actions">
+                <button id="novo-paciente-btn" class="btn btn-primary">+ Novo Paciente</button>
+            </div>
+        </div>
         <div class="main-card">
             <div class="filter-section"><label for="search-input">Buscar:</label><input type="text" id="search-input" placeholder="Por favor, insira o nome do paciente..."><button class="btn btn-secondary">Limpar</button><button class="btn btn-primary">Filtrar</button></div>
             <table class="data-table"><thead><tr><th>Nome</th><th>Telefone</th><th>Opções</th></tr></thead><tbody id="pacientes-table-body"></tbody></table>

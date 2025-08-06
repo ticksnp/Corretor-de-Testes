@@ -107,7 +107,6 @@ body {
 /* ==========================================================================
    3. CONTEÚDO PRINCIPAL E COMPONENTES GERAIS
    ========================================================================== */
-/* ... (todo o resto do seu CSS permanece igual) ... */
 .content {
     flex-grow: 1;
     padding: 24px;
@@ -117,6 +116,22 @@ h1 {
     margin-bottom: 20px;
     margin-top: 0;
 }
+
+/* [NOVO] Estilo para o cabeçalho das páginas principais (Laudos, Pacientes) */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.header-container h1 {
+    margin: 0; /* Remove margens do h1 para alinhamento vertical perfeito */
+}
+.header-container .header-actions {
+    display: flex;
+    gap: 10px; /* Para múltiplos botões no futuro */
+}
+
 
 .page-header-container {
     display: flex;
