@@ -5,42 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FS Laudos</title>
     <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <div class="container">
-        <!-- ... seu HTML da sidebar e do app-content ... -->
-    </div>
-
-    <!-- Scripts de bibliotecas externas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    
+    <!-- Scripts de Bibliotecas Externas Essenciais (carregados primeiro) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    
+    <!-- Scripts para Geração de Documentos (podem ser carregados depois) -->
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <script src="js/pizzip.min.js"></script>
     <script src="js/docxtemplater.min.js"></script>
     <script src="js/image-module.min.js"></script>
-    
-    <!-- Scripts da Aplicação (NOVA ORDEM) -->
-    <script> const FSLaudosApp = {}; </script>
-    <script src="js/firebase-config.js"></script>
 
-    <!-- 1. Carregue TODOS os arquivos de dados dos testes -->
-    <script src="js/test-data/bpa2-data.js"></script>
-    <script src="js/test-data/wisc-iv-data.js"></script>
-    <script src="js/test-data/srs2-data.js"></script>
-    <script src="js/test-data/etdah-ad-data.js"></script>
-    <script src="js/test-data/ravlt-data.js"></script>
-    
-    <!-- 2. Carregue o baremos.js (que depende dos arquivos acima) -->
-    <script src="js/baremos.js"></script>
-    
-    <!-- 3. Carregue o resto da aplicação -->
-    <script src="js/test-forms.js"></script>
-    <script src="js/views.js"></script>
-    <script src="js/export.js"></script>
-    <script src="js/page-logic.js"></script> 
-    <script src="js/app.js"></script>
+    <!-- [CORREÇÃO CRÍTICA] Scripts da Aplicação movidos para o final do <head> com 'defer' -->
+    <!-- 'defer' garante que os scripts só executem após o HTML ser totalmente carregado -->
+    <script> const FSLaudosApp = {}; </script>
+    <script src="js/firebase-config.js" defer></script>
+    <script src="js/test-data/bpa2-data.js" defer></script>
+    <script src="js/test-data/wisc-iv-data.js" defer></script>
+    <script src="js/test-data/srs2-data.js" defer></script>
+    <script src="js/test-data/etdah-ad-data.js" defer></script>
+    <script src="js/test-data/ravlt-data.js" defer></script>
+    <script src="js/baremos.js" defer></script>
+    <script src="js/test-forms.js" defer></script>
+    <script src="js/views.js" defer></script>
+    <script src="js/export.js" defer></script>
+    <script src="js/page-logic.js" defer></script> 
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="/images/logo.png" alt="Laudos Logo">
+                <span class="logo-text">Laudos</span>
+            </div>
+            
+            <ul id="nav-menu">
+                <li><a href="#laudos" data-page="laudos" class="nav-link">Laudos</a></li>
+                <li><a href="#pacientes" data-page="pacientes" class="nav-link">Pacientes</a></li>
+                <li><a href="#chat-ia" data-page="chat-ia" class="nav-link">ChatIA</a></li>
+                <li class="has-submenu">
+                    <a href="#" class="nav-link config-parent-link">Configurações</a>
+                    <ul class="submenu">
+                        <li><a href="#configuracoes-laudo" data-page="configuracoes-laudo" class="nav-link">Laudo</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <a href="#" id="logout-btn">Sair</a>
+
+        </nav>
+        
+        <!-- Este elemento agora existirá antes de qualquer script com 'defer' ser executado -->
+        <main id="app-content" class="content">
+            <p>Carregando aplicação...</p>
+        </main>
+    </div>
 </body>
 </html>
