@@ -12,6 +12,8 @@ FSLaudosApp.views = {
             <div class="filter-section"><label for="search-input">Buscar:</label><input type="text" id="search-input" placeholder="Por favor, insira o nome do paciente..."><button id="clear-btn" class="btn btn-secondary">Limpar</button><button id="filter-btn" class="btn btn-primary">Filtrar</button></div>
             <table class="data-table"><thead><tr><th>Data</th><th>Paciente</th><th>Testes</th><th>Opções</th></tr></thead><tbody id="laudos-table-body"></tbody></table>
         </div>
+
+        <!-- Modal Principal: Novo Laudo (Estrutura corrigida) -->
         <div id="novo-laudo-modal-overlay" class="modal-overlay hidden">
             <div class="modal-content">
                 <div class="modal-header">
@@ -19,49 +21,52 @@ FSLaudosApp.views = {
                     <button id="close-modal-btn" class="close-modal">×</button>
                 </div>
                 <form id="novo-laudo-form" class="modal-body">
-                    
                     <div class="form-group">
-                        <label for="selecionar-paciente">Selecione um Paciente já Cadastrado</label>
-                        <select id="selecionar-paciente" name="selecionar-paciente">
-                           <option value="" disabled selected>Selecione um Paciente</option>
-                           <!-- Pacientes serão populados pelo JavaScript -->
+                        <label>Selecione um Paciente já Cadastrado</label>
+                        <select id="selecionar-paciente">
+                           <option value="" selected>Selecione um Paciente</option>
                         </select>
                     </div>
-
                     <div style="text-align:center; margin: 15px 0; font-weight: 500; color: #888;">ou</div>
-                    
                     <div class="form-group">
-                        <label for="paciente-nome">Nome do Paciente</label>
+                        <label for="paciente-nome">* Nome do Paciente</label>
                         <input type="text" id="paciente-nome" placeholder="Insira um Nome para o Paciente" required>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="paciente-nascimento">Data de Nascimento</label>
+                            <label for="paciente-nascimento">* Data de Nascimento</label>
                             <input type="text" id="paciente-nascimento" placeholder="DD/MM/AAAA" required>
                         </div>
                         <div class="form-group">
-                            <label for="data-aplicacao">Data de Aplicação do Teste</label>
+                            <label for="data-aplicacao">* Data de Aplicação do Teste</label>
                             <input type="text" id="data-aplicacao" placeholder="DD/MM/AAAA" required>
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <label>Testes</label>
-                        <div id="testes-custom-select" class="custom-select-container">
-                            <div class="select-box">
-                                <span class="select-text">Selecione Todos os Testes para o laudo</span>
-                                <span class="select-arrow"></span>
-                            </div>
-                            <div id="checkbox-options" class="checkbox-options hidden"></div>
-                        </div>
+                        <input type="text" id="testes-input-display" placeholder="Selecione Todos os Testes para o laudo" readonly style="cursor: pointer; background-color: white;">
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" id="cancel-btn" class="btn btn-secondary">Cancelar</button>
-                        <button type="submit" class="btn btn-primary" style="background-color: #01C8A3; border-color: #01C8A3;">OK</button>
+                        <button type="submit" class="btn btn-primary" style="background-color: #05C2A7; border-color: #05C2A7;">OK</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal Secundário: Seleção de Testes -->
+        <div id="selecionar-testes-modal-overlay" class="modal-overlay hidden">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>Selecionar Testes</h2>
+                </div>
+                <div id="testes-checkbox-list" class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Checkboxes dos testes serão inseridos aqui pelo JavaScript -->
+                </div>
+                <div class="modal-footer">
+                     <button type="button" id="close-testes-modal-btn" class="btn btn-secondary">Cancelar</button>
+                    <button type="button" id="confirm-testes-btn" class="btn btn-primary">Confirmar</button>
+                </div>
             </div>
         </div>
     `,
@@ -81,7 +86,7 @@ FSLaudosApp.views = {
                 <div class="modal-header"><h2>Novo Paciente</h2><button id="close-paciente-modal-btn" class="close-modal">×</button></div>
                 <form id="novo-paciente-form" class="modal-body">
                     <div class="form-group"><label for="paciente-form-nome">* Nome</label><input type="text" id="paciente-form-nome" required></div>
-                    <div class="form-group"><label for="paciente-form-nascimento">* Data de Nascimento</label><input type="text" id="paciente-form-nascimento" placeholder="DD/MM/AAAA" required></div>
+                    <div class.form-group"><label for="paciente-form-nascimento">* Data de Nascimento</label><input type="text" id="paciente-form-nascimento" placeholder="DD/MM/AAAA" required></div>
                     <div class="form-group"><label for="paciente-form-cpf">CPF</label><input type="text" id="paciente-form-cpf"></div>
                     <div class="form-group"><label for="paciente-form-email">Email</label><input type="email" id="paciente-form-email"></div>
                     <div class="form-group"><label for="paciente-form-telefone">Telefone</label><input type="text" id="paciente-form-telefone"></div>
@@ -105,10 +110,8 @@ FSLaudosApp.views = {
                 </div>
             </div>
             <div class="chat-input-area">
-                <!-- [RESTAURADO] Container para pré-visualização de arquivos -->
                 <div id="chat-file-preview-container"></div>
                 <form id="chat-form">
-                    <!-- [RESTAURADO] Botão de anexo e input de arquivo escondido -->
                     <button type="button" id="chat-attach-btn" title="Anexar arquivo">📎</button>
                     <input type="file" id="chat-file-input" hidden accept="image/*,video/*">
 
@@ -135,7 +138,6 @@ FSLaudosApp.views = {
         </div>
         <div class="preenchimento-laudo-body">
             <aside id="testes-sidebar">
-                <!-- A lista de testes será preenchida pelo page-logic.js -->
             </aside>
             <main class="main-content-area">
                 <div id="page-tabs-container">
@@ -149,7 +151,6 @@ FSLaudosApp.views = {
             </main> 
         </div>
     </div>
-    <!-- [NOVO] Modal para adicionar testes -->
     <div id="add-test-modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -165,7 +166,6 @@ FSLaudosApp.views = {
                             <span class="select-arrow"></span>
                         </div>
                         <div id="add-test-checkbox-options" class="checkbox-options hidden">
-                            <!-- Checkboxes serão inseridos aqui pelo JavaScript -->
                         </div>
                     </div>
                 </div>
@@ -269,7 +269,6 @@ FSLaudosApp.views = {
                                 </tr>
                             </thead>
                             <tbody id="paciente-laudos-table-body">
-                                <!-- Laudos do paciente serão inseridos aqui pelo JavaScript -->
                             </tbody>
                         </table>
                     </div>

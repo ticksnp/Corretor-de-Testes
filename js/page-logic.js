@@ -32,42 +32,27 @@ FSLaudosApp.calculateAgeInYearsAndMonths = (dobString, appDateString) => {
     return `${years} anos e ${months} meses`;
 };
 
-/**
- * [ATUALIZADO] Calcula a idade precisa em anos, meses e dias.
- * @param {string} dobString - Data de nascimento no formato "DD/MM/AAAA".
- * @param {string} appDateString - Data da aplicação no formato "DD/MM/AAAA".
- * @returns {object|null} Objeto com { years, months, days } ou null se as datas forem inválidas.
- */
 FSLaudosApp.calculatePreciseAge = (dobString, appDateString) => {
     if (!dobString || !appDateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(dobString) || !/^\d{2}\/\d{2}\/\d{4}$/.test(appDateString)) {
         return null;
     }
     const [dobDay, dobMonth, dobYear] = dobString.split('/').map(Number);
     const [appDay, appMonth, appYear] = appDateString.split('/').map(Number);
-
     let birthDate = new Date(dobYear, dobMonth - 1, dobDay);
     let applicationDate = new Date(appYear, appMonth - 1, appDay);
-
-    if (isNaN(birthDate.getTime()) || isNaN(applicationDate.getTime()) || applicationDate < birthDate) {
-        return null;
-    }
-    
+    if (isNaN(birthDate.getTime()) || isNaN(applicationDate.getTime()) || applicationDate < birthDate) { return null; }
     let years = applicationDate.getFullYear() - birthDate.getFullYear();
     let months = applicationDate.getMonth() - birthDate.getMonth();
     let days = applicationDate.getDate() - birthDate.getDate();
-
     if (days < 0) {
         months--;
-        // Obter o último dia do mês anterior à aplicação
         const lastDayOfPreviousMonth = new Date(applicationDate.getFullYear(), applicationDate.getMonth(), 0).getDate();
         days += lastDayOfPreviousMonth;
     }
-
     if (months < 0) {
         years--;
         months += 12;
     }
-
     return { years, months, days };
 };
 
@@ -86,8 +71,6 @@ FSLaudosApp.calculateAgeInYearsAtDate = (dobString, appDateString) => {
 };
 
 FSLaudosApp.pageLogic = (() => {
-    // [REMOVIDO] A definição da variável 'db' que estava aqui foi removida.
-    
     let activeChart = null;
     const destroyActiveChart = () => {
         if (activeChart) {
@@ -98,12 +81,12 @@ FSLaudosApp.pageLogic = (() => {
     
     return {
         laudos: () => {
-            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
             const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido na página de Laudos."); return; }
 
             const { testForms } = FSLaudosApp;
             const appContent = document.getElementById('app-content');
+            let selectedTestKeys = []; // Variável para guardar os testes selecionados
             
             const renderLaudosTable = () => {
                 const tableBody = document.getElementById('laudos-table-body');
@@ -118,21 +101,10 @@ FSLaudosApp.pageLogic = (() => {
                     snapshot.forEach(doc => {
                         const laudo = doc.data();
                         const laudoId = doc.id;
-                        
-                        const testesHtml = (laudo.testes || [])
-                            .map(chave => testForms[chave]?.nomeExibicao || chave)
-                            .map(nome => `<span class="test-tag">${nome}</span>`)
-                            .join('');
-
+                        const testesHtml = (laudo.testes || []).map(chave => testForms[chave]?.nomeExibicao || chave).map(nome => `<span class="test-tag">${nome}</span>`).join('');
                         const acao = `<a href="#laudo/${laudoId}" class="details-link">Detalhes</a> <button data-id="${laudoId}" class="details-link edit-laudo-btn" style="background:none; border:none; cursor:pointer; padding:0; font-family: inherit; font-size: inherit;">Editar</button>`;
-                        
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${laudo.dataAplicacao || ''}</td>
-                            <td>${laudo.pacienteNome || ''}</td>
-                            <td><div class="test-tags-container">${testesHtml}</div></td>
-                            <td class="options-cell">${acao}</td>
-                        `;
+                        tr.innerHTML = `<td>${laudo.dataAplicacao || ''}</td><td>${laudo.pacienteNome || ''}</td><td><div class="test-tags-container">${testesHtml}</div></td><td class="options-cell">${acao}</td>`;
                         tableBody.appendChild(tr);
                     });
                 }).catch(err => {
@@ -147,73 +119,58 @@ FSLaudosApp.pageLogic = (() => {
 
                 const laudoForm = document.getElementById('novo-laudo-form');
                 const modalTitle = document.getElementById('modal-title');
+                
                 const freshForm = laudoForm.cloneNode(true);
                 laudoForm.parentNode.replaceChild(freshForm, laudoForm);
                 freshForm.reset();
+                selectedTestKeys = []; // Limpa os testes selecionados ao abrir o modal
                 delete freshForm.dataset.editingId;
 
                 const pacienteSelect = freshForm.querySelector('#selecionar-paciente');
                 const campoNome = freshForm.querySelector('#paciente-nome');
                 const campoNascimento = freshForm.querySelector('#paciente-nascimento');
                 const campoAplicacao = freshForm.querySelector('#data-aplicacao');
-
-                // Lógica para o seletor de testes customizado
-                const customSelect = freshForm.querySelector('#testes-custom-select');
-                const selectBox = customSelect.querySelector('.select-box');
-                const selectText = selectBox.querySelector('.select-text');
-                const freshCheckboxOptions = customSelect.querySelector('#checkbox-options');
-                const testesData = Object.values(testForms).map(teste => ({ 
-                    id: Object.keys(testForms).find(key => testForms[key] === teste),
-                    name: teste.nomeExibicao 
-                })).sort((a, b) => a.name.localeCompare(b.name));
-                freshCheckboxOptions.innerHTML = '<ul class="treenode-list">' + testesData.map(teste => {
-                    const cleanNameId = teste.name.replace(/[^a-zA-Z0-9]/g, "");
-                    return `<li class="treenode-leaf"><div class="treenode-content"><input type="checkbox" name="teste" value="${teste.id}" id="modal-teste-${cleanNameId}"><label for="modal-teste-${cleanNameId}">${teste.name}</label></div></li>`;
-                }).join('') + '</ul>';
-                const updateSelectedTestsText = () => {
-                    const checked = Array.from(freshCheckboxOptions.querySelectorAll('input:checked'));
-                    selectText.textContent = checked.length > 0 ? checked.map(cb => testForms[cb.value]?.nomeExibicao).join(', ') : 'Selecione Todos os Testes para o laudo';
-                };
+                const testesInputDisplay = freshForm.querySelector('#testes-input-display');
                 
-                // Carregar pacientes no dropdown
-                db.collection('pacientes').orderBy('nome').get().then(snapshot => {
+                const pacientes = [];
+                try {
+                    const snapshot = await db.collection('pacientes').orderBy('nome').get();
+                    pacienteSelect.innerHTML = '<option value="" selected>Selecione um Paciente</option>';
                     snapshot.forEach(doc => {
                         const paciente = doc.data();
+                        pacientes.push({ id: doc.id, ...paciente });
                         const option = document.createElement('option');
                         option.value = doc.id;
                         option.textContent = paciente.nome;
-                        option.dataset.nascimento = paciente.nascimento || '';
                         pacienteSelect.appendChild(option);
                     });
-                }).catch(err => console.error("Erro ao carregar pacientes para o modal:", err));
-
-                const clearPatientSelectionAndEnableFields = () => {
-                    pacienteSelect.value = '';
-                    campoNome.disabled = false;
-                    campoNascimento.disabled = false;
-                    campoNome.style.backgroundColor = '';
-                    campoNascimento.style.backgroundColor = '';
-                };
+                } catch(err) { console.error("Erro ao carregar pacientes:", err) }
                 
                 pacienteSelect.addEventListener('change', (e) => {
-                    const selectedOption = e.target.options[e.target.selectedIndex];
-                    if (selectedOption && selectedOption.value) {
-                        campoNome.value = selectedOption.textContent;
-                        campoNascimento.value = selectedOption.dataset.nascimento || '';
+                    const selectedId = e.target.value;
+                    const selectedPaciente = pacientes.find(p => p.id === selectedId);
+                    if (selectedPaciente) {
+                        campoNome.value = selectedPaciente.nome;
+                        campoNascimento.value = selectedPaciente.nascimento || '';
                         campoNome.disabled = true;
                         campoNascimento.disabled = true;
-                        campoNome.style.backgroundColor = '#e9ecef';
-                        campoNascimento.style.backgroundColor = '#e9ecef';
                     } else {
-                        clearPatientSelectionAndEnableFields();
+                        campoNome.value = '';
+                        campoNascimento.value = '';
+                        campoNome.disabled = false;
+                        campoNascimento.disabled = false;
                     }
                 });
 
-                campoNome.addEventListener('input', clearPatientSelectionAndEnableFields);
-                campoNascimento.addEventListener('input', () => {
-                    FSLaudosApp.formatDateInput(campoNascimento);
-                    clearPatientSelectionAndEnableFields();
-                });
+                const manualInputHandler = () => {
+                    if (pacienteSelect.value !== '') {
+                        pacienteSelect.value = '';
+                        campoNome.disabled = false;
+                        campoNascimento.disabled = false;
+                    }
+                };
+                campoNome.addEventListener('input', manualInputHandler);
+                campoNascimento.addEventListener('input', () => { FSLaudosApp.formatDateInput(campoNascimento); manualInputHandler(); });
                 campoAplicacao.addEventListener('input', () => FSLaudosApp.formatDateInput(campoAplicacao));
 
                 if (laudoId) {
@@ -224,44 +181,33 @@ FSLaudosApp.pageLogic = (() => {
                         campoNome.value = data.pacienteNome || '';
                         campoNascimento.value = data.pacienteNascimento || '';
                         campoAplicacao.value = data.dataAplicacao || '';
-                        (data.testes || []).forEach(testKey => {
-                            const checkbox = freshCheckboxOptions.querySelector(`input[value="${testKey}"]`);
-                            if (checkbox) checkbox.checked = true;
-                        });
-
-                        // Se o laudo está vinculado a um paciente, pré-seleciona e desativa os campos
+                        selectedTestKeys = data.testes || [];
+                        updateSelectedTestsText(testesInputDisplay, selectedTestKeys);
                         if(data.pacienteId) {
-                           setTimeout(() => { // Espera a lista de pacientes carregar
+                           setTimeout(() => {
                                pacienteSelect.value = data.pacienteId;
-                               if(pacienteSelect.value === data.pacienteId) { // Confirma que a opção existe
+                               if(pacienteSelect.value === data.pacienteId) {
                                    pacienteSelect.dispatchEvent(new Event('change'));
                                }
-                           }, 500);
+                           }, 200);
                         }
                         freshForm.dataset.editingId = laudoId;
                     }
                 } else {
                     modalTitle.textContent = "Novo Laudo";
+                    updateSelectedTestsText(testesInputDisplay, []);
                 }
                 
-                updateSelectedTestsText();
-                
-                selectBox.addEventListener('click', () => { customSelect.classList.toggle('open'); freshCheckboxOptions.classList.toggle('hidden'); });
-                freshCheckboxOptions.addEventListener('change', updateSelectedTestsText);
+                testesInputDisplay.addEventListener('click', () => openTestSelectionModal(selectedTestKeys, testesInputDisplay));
 
                 freshForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    
-                    // Habilita temporariamente para pegar os valores
-                    campoNome.disabled = false;
-                    campoNascimento.disabled = false;
-
-                    const selectedTestKeys = Array.from(freshForm.querySelectorAll('input[name="teste"]:checked')).map(cb => cb.value);
-                    if (selectedTestKeys.length === 0) { 
+                    if (selectedTestKeys.length === 0) {
                         alert('Por favor, selecione pelo menos um teste.');
                         return;
                     }
-
+                    campoNome.disabled = false;
+                    campoNascimento.disabled = false;
                     const laudoData = {
                         pacienteNome: campoNome.value,
                         pacienteNascimento: campoNascimento.value,
@@ -269,21 +215,57 @@ FSLaudosApp.pageLogic = (() => {
                         testes: selectedTestKeys,
                         pacienteId: pacienteSelect.value || null
                     };
-
                     const editingId = freshForm.dataset.editingId;
-                    const promise = editingId 
-                        ? db.collection('laudos').doc(editingId).update(laudoData) 
-                        : db.collection('laudos').add({ ...laudoData, status: 'em_preenchimento', dataCadastro: firebase.firestore.FieldValue.serverTimestamp() });
-
+                    const promise = editingId ? db.collection('laudos').doc(editingId).update(laudoData) : db.collection('laudos').add({ ...laudoData, status: 'em_preenchimento', dataCadastro: firebase.firestore.FieldValue.serverTimestamp() });
                     promise.then(() => {
                         modalOverlay.classList.add('hidden');
                         renderLaudosTable();
                     }).catch(err => {
-                        console.error("Erro ao salvar laudo: ", err);
+                        console.error("Erro ao salvar laudo:", err);
                         alert('Erro ao salvar o laudo.');
                     });
                 });
                 modalOverlay.classList.remove('hidden');
+            };
+
+            const updateSelectedTestsText = (displayElement, keys) => {
+                if (!displayElement) return;
+                if (keys.length === 0) {
+                    displayElement.value = 'Selecione Todos os Testes para o laudo';
+                } else if (keys.length === 1) {
+                    displayElement.value = testForms[keys[0]]?.nomeExibicao || 'Teste desconhecido';
+                } else {
+                    displayElement.value = `${keys.length} testes selecionados`;
+                }
+            };
+
+            const openTestSelectionModal = (currentlySelectedKeys, displayElement) => {
+                const testesModalOverlay = document.getElementById('selecionar-testes-modal-overlay');
+                const checkboxList = document.getElementById('testes-checkbox-list');
+                const confirmBtn = document.getElementById('confirm-testes-btn');
+                const closeBtn = document.getElementById('close-testes-modal-btn');
+                if (!testesModalOverlay || !checkboxList || !confirmBtn || !closeBtn) return;
+                
+                const testesData = Object.entries(testForms).map(([id, teste]) => ({ id, name: teste.nomeExibicao })).sort((a, b) => a.name.localeCompare(b.name));
+                checkboxList.innerHTML = '<ul>' + testesData.map(teste => {
+                    const isChecked = currentlySelectedKeys.includes(teste.id) ? 'checked' : '';
+                    return `<li style="padding: 5px 0;"><label style="display: flex; align-items: center; cursor: pointer;"><input type="checkbox" value="${teste.id}" ${isChecked} style="margin-right: 10px;">${teste.name}</label></li>`;
+                }).join('') + '</ul>';
+
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                newConfirmBtn.addEventListener('click', () => {
+                    const checkedInputs = checkboxList.querySelectorAll('input[type="checkbox"]:checked');
+                    selectedTestKeys = Array.from(checkedInputs).map(input => input.value);
+                    updateSelectedTestsText(displayElement, selectedTestKeys);
+                    testesModalOverlay.classList.add('hidden');
+                });
+
+                const newCloseBtn = closeBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+                newCloseBtn.addEventListener('click', () => testesModalOverlay.classList.add('hidden'));
+
+                testesModalOverlay.classList.remove('hidden');
             };
 
             renderLaudosTable();
@@ -304,14 +286,11 @@ FSLaudosApp.pageLogic = (() => {
             });
         },
         pacientes: () => {
-            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
             const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido na página de Pacientes."); return; }
-
             const modalOverlay = document.getElementById('novo-paciente-modal-overlay');
             const form = document.getElementById('novo-paciente-form');
             const tableBody = document.getElementById('pacientes-table-body');
-            
             const renderTable = () => {
                 if (!tableBody) return;
                 tableBody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>';
@@ -332,19 +311,15 @@ FSLaudosApp.pageLogic = (() => {
                     tableBody.innerHTML = '<tr><td colspan="3">Erro ao carregar pacientes.</td></tr>';
                 });
             };
-
             const openModal = () => modalOverlay.classList.remove('hidden');
             const closeModal = () => modalOverlay.classList.add('hidden');
-
             document.getElementById('novo-paciente-btn').addEventListener('click', openModal);
             document.getElementById('close-paciente-modal-btn').addEventListener('click', closeModal);
             document.getElementById('cancel-paciente-btn').addEventListener('click', closeModal);
-            
             const campoNascimento = document.getElementById('paciente-form-nascimento');
             if (campoNascimento) {
                 campoNascimento.addEventListener('input', () => FSLaudosApp.formatDateInput(campoNascimento));
             }
-            
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const pacienteData = {
