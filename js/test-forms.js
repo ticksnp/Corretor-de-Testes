@@ -1,3 +1,5 @@
+// js/test-forms.js
+
 FSLaudosApp.testForms = {
     'BPA2': {
         nomeExibicao: 'BPA-2',
@@ -209,8 +211,8 @@ FSLaudosApp.gerarHtmlDoFormulario = function(chaveTeste) {
             return `
                 <div class="srs2-item">
                     <label for="srs2-q${num}-valor">${num}</label>
-                    <input type="number" id="srs2-q${num}-valor" class="srs2-item-valor" min="1" max="4">
-                    <input type="text" id="srs2-q${num}-pontos" class="srs2-item-pontos" disabled>
+                    <input type="number" id="srs2-q${num}-valor" class="srs2-item-valor test-input" data-field="q${num}_valor" min="1" max="4">
+                    <input type="text" id="srs2-q${num}-pontos" class="srs2-item-pontos test-input" data-field="q${num}_pontos" disabled>
                 </div>`;
         }).join('');
 
@@ -264,16 +266,16 @@ FSLaudosApp.gerarHtmlDoFormulario = function(chaveTeste) {
         `).join('');
         const compositeTable = `
             <div class="main-card" style="padding: 0; margin-bottom: 24px;">
-                <h3 style="padding: 15px 15px 0; margin: 0; font-size: 16px; color: #495057;">Conversão da Soma dos Pontos Ponderados em Pontos Composto</h3>
-                <table class="data-table correction-table">
+                <h3 style="padding: 15px 20px 10px; margin: 0; font-size: 16px; color: #495057; border-bottom: 1px solid #e9ecef;">Conversão da Soma dos Pontos Ponderados em Pontos Composto</h3>
+                <table class="data-table wisc-table">
                     <thead>
                         <tr>
-                            <th>Escala</th>
-                            <th>Somatória Pontos Ponderados</th>
-                            <th>Pontos Composto</th>
-                            <th>Rank Percentil</th>
-                            <th colspan="2">Intervalo de Confiança</th>
-                            <th>Classificação</th>
+                            <th class="escala-col">Escala</th>
+                            <th class="soma-col">Soma dos Pontos Ponderados</th>
+                            <th class="ponto-col">Ponto Composto</th>
+                            <th class="rank-col">Rank Percentil</th>
+                            <th class="ic-col" colspan="2">Intervalo de Confiança</th>
+                            <th class="classif-col">Classificação</th>
                         </tr>
                         <tr>
                            <th></th><th></th><th></th><th></th><th>90%</th><th>95%</th><th></th>
@@ -294,9 +296,9 @@ FSLaudosApp.gerarHtmlDoFormulario = function(chaveTeste) {
         `).join('');
         const subtestsTable = `
              <div class="main-card" style="padding: 0;">
-                <h3 style="padding: 15px 15px 0; margin: 0; font-size: 16px; color: #495057;">Conversão Pontos Brutos em Ponderados</h3>
-                <table class="data-table correction-table">
-                    <thead><tr><th>Sub-Teste</th><th>Pontos Brutos</th><th>Pontos Ponderados</th><th>Classificação</th></tr></thead>
+                <h3 style="padding: 15px 20px 10px; margin: 0; font-size: 16px; color: #495057; border-bottom: 1px solid #e9ecef;">Conversão Pontos Brutos em Ponderados</h3>
+                <table class="data-table wisc-table">
+                    <thead><tr><th class="subtest-col">Sub-Teste</th><th class="bruto-col">Pontos Brutos</th><th class="pond-col">Pontos Ponderados</th><th class="classif-col">Classificação</th></tr></thead>
                     <tbody>${subtestsTableRows}</tbody>
                 </table>
             </div>
@@ -305,7 +307,7 @@ FSLaudosApp.gerarHtmlDoFormulario = function(chaveTeste) {
         formContentHtml = `
             ${compositeTable}
             ${subtestsTable}
-            <div class="footer-actions" style="text-align: right; padding-top: 24px;">
+            <div class="footer-actions">
                 <button id="salvar-parcial-${chaveTeste}" class="btn btn-primary">Salvar Pontos Brutos</button>
             </div>
         `;
@@ -388,7 +390,7 @@ FSLaudosApp.gerarHtmlDoFormulario = function(chaveTeste) {
         const FatoresRows = formConfig.fatores.map(fator => `<tr><td>${fator.label}</td><td id="etdah-bruto-${fator.id}">-</td><td id="etdah-percentil-${fator.id}">-</td><td id="etdah-classificacao-${fator.id}">-</td></tr>`).join('');
         const PerguntasGrid = Array.from({ length: 69 }, (_, i) => {
             const num = i + 1;
-            return `<div class="form-group" style="text-align: center;"><label for="etdah-q-${num}" style="margin-bottom: 4px;">${num}</label><input type="number" id="etdah-q-${num}" data-question="${num}" class="etdah-question-input" min="0" max="5" style="padding: 8px; text-align: center; width: 100%;"></div>`;
+            return `<div class="form-group" style="text-align: center;"><label for="etdah-q-${num}" style="margin-bottom: 4px;">${num}</label><input type="number" id="etdah-q-${num}" data-question="${num}" class="etdah-question-input test-input" data-field="q${num}" min="0" max="5" style="padding: 8px; text-align: center; width: 100%;"></div>`;
         }).join('');
         const EscolaridadeOptions = formConfig.niveisEscolaridade.map(nivel => `<option value="${nivel}">${nivel}</option>`).join('');
 
@@ -398,7 +400,7 @@ FSLaudosApp.gerarHtmlDoFormulario = function(chaveTeste) {
                     <h3 style="margin: 0;">Resumo por Fator</h3>
                     <div class="form-group" style="margin: 0;">
                         <label for="etdah-escolaridade" style="margin: 0 8px 0 0;">Nível de Escolaridade</label>
-                        <select id="etdah-escolaridade" style="padding: 8px;">${EscolaridadeOptions}</select>
+                        <select id="etdah-escolaridade" class="test-input" data-field="escolaridade" style="padding: 8px;">${EscolaridadeOptions}</select>
                     </div>
                 </div>
                 <table class="data-table" style="margin-bottom: 30px;">

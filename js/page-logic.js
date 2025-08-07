@@ -352,11 +352,9 @@ FSLaudosApp.pageLogic = (() => {
             const fileInput = document.getElementById('chat-file-input');
             const filePreviewContainer = document.getElementById('chat-file-preview-container');
 
-            // [CORREÇÃO] Carrega o histórico do sessionStorage ou inicia um array vazio.
             let conversationHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
             let currentFiles = [];
 
-            // [CORREÇÃO] Função para renderizar a mensagem na tela (sem alterar o histórico)
             const renderMessage = (sender, content) => {
                  const messageDiv = document.createElement('div');
                 messageDiv.classList.add('chat-message', sender);
@@ -375,19 +373,16 @@ FSLaudosApp.pageLogic = (() => {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             };
 
-            // [CORREÇÃO] Função que adiciona a mensagem na tela E no histórico
             const appendMessage = (sender, content) => {
                 renderMessage(sender, content);
 
                 const role = (sender === 'user') ? 'user' : 'model';
                 conversationHistory.push({ role, parts: [{ text: content.replace(/<br>/g, '\n') }] });
-                // Salva o histórico atualizado no sessionStorage
                 sessionStorage.setItem('chatHistory', JSON.stringify(conversationHistory));
             };
             
-            // [CORREÇÃO] Renderiza o histórico existente ao carregar a página
             const renderHistory = () => {
-                messagesContainer.innerHTML = ''; // Limpa a tela
+                messagesContainer.innerHTML = ''; 
                 if (conversationHistory.length === 0) {
                     renderMessage('ai', 'Olá! Sou seu assistente de IA. Faça uma pergunta ou arraste uma imagem para cá para que eu possa analisá-la.');
                 } else {
@@ -402,9 +397,9 @@ FSLaudosApp.pageLogic = (() => {
             const startNewChat = () => {
                 conversationHistory = [];
                 currentFiles = [];
-                sessionStorage.removeItem('chatHistory'); // Limpa o histórico salvo
+                sessionStorage.removeItem('chatHistory');
                 updateFilePreview();
-                renderHistory(); // Renderiza a mensagem inicial
+                renderHistory();
                 chatInput.focus();
             };
 
@@ -442,9 +437,23 @@ FSLaudosApp.pageLogic = (() => {
             chatContainer.addEventListener('drop', (e) => { e.preventDefault(); chatContainer.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
             newChatBtn.addEventListener('click', startNewChat);
 
-            const showTypingIndicator = () => { /* ...código original sem alterações... */ };
-            const removeTypingIndicator = () => { /* ...código original sem alterações... */ };
-            const fileToBase64 = (file) => new Promise((resolve, reject) => { /* ...código original sem alterações... */ });
+            const showTypingIndicator = () => {
+                const typingDiv = document.createElement('div');
+                typingDiv.classList.add('chat-message', 'ai', 'typing-indicator');
+                typingDiv.innerHTML = '<div class="avatar">IA</div><div class="message-content"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+                messagesContainer.appendChild(typingDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            };
+            const removeTypingIndicator = () => {
+                const indicator = messagesContainer.querySelector('.typing-indicator');
+                if (indicator) indicator.remove();
+            };
+            const fileToBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
 
             chatForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -469,7 +478,6 @@ FSLaudosApp.pageLogic = (() => {
                 showTypingIndicator();
 
                 try {
-                    // [CORREÇÃO] Envia o histórico SEM a última mensagem do usuário, que já está no 'query'
                     const historyForApi = conversationHistory.slice(0, -1);
                     
                     const response = await fetch('/.netlify/functions/chat-ia-handler', {
@@ -492,7 +500,6 @@ FSLaudosApp.pageLogic = (() => {
                     appendMessage('ai', data.reply.replace(/\n/g, '<br>'));
                 } catch (error) {
                     removeTypingIndicator();
-                    // Adiciona a mensagem de erro na tela, mas não no histórico
                     renderMessage('ai', `Desculpe, ocorreu um erro: ${error.message}`);
                 } finally {
                     chatSendBtn.disabled = false;
@@ -500,11 +507,9 @@ FSLaudosApp.pageLogic = (() => {
                 }
             });
             
-            // [CORREÇÃO] Chama a função para renderizar o histórico ao iniciar.
             renderHistory();
         },
         'detalhes-paciente': (pacienteId) => {
-            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
             const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido em Detalhes do Paciente."); return; }
             if (!pacienteId) return;
@@ -704,7 +709,6 @@ FSLaudosApp.pageLogic = (() => {
             }
         },
         'configuracoes-laudo': () => {
-            // Esta função não usa 'db', então não precisa de alterações.
             const saveButton = document.getElementById('save-config-btn');
             const logoUploadInput = document.getElementById('logo-upload-input');
             const logoPreviewContainer = document.getElementById('logo-preview-container');
@@ -773,7 +777,6 @@ FSLaudosApp.pageLogic = (() => {
             loadConfig();
         },
         'preenchimento-laudo': (laudoId) => {
-            // [CORREÇÃO] A variável 'db' agora é definida dentro da função.
             const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido no Preenchimento de Laudo."); return; }
             
@@ -790,7 +793,7 @@ FSLaudosApp.pageLogic = (() => {
             let chaveTesteAtiva = '';
 
             const renderContentPane = (tabName) => {
-                destroyActiveChart(); // Destrói qualquer gráfico existente ao mudar de aba/conteúdo
+                destroyActiveChart(); 
                 const content = document.getElementById('preenchimento-content');
                 if (!content) return;
                 
@@ -808,29 +811,33 @@ FSLaudosApp.pageLogic = (() => {
                     content.innerHTML = FSLaudosApp.gerarHtmlDoFormulario(chaveTesteAtiva);
                     
                     if (chaveTesteAtiva === 'SRS2EscolarMasc' || chaveTesteAtiva === 'SRS2EscolarFem') {
-                        const { SRS2Data } = baremos;
+                        const { SRS2Data } = FSLaudosApp.testData;
                         
                         const updateSrs2Calculations = () => {
-                             const srsPontos = {};
+                             const pontos = {};
+                             const valores = {};
+
                              for(let i = 1; i <= 65; i++) {
                                 const valorInput = document.getElementById(`srs2-q${i}-valor`);
                                 const pontosInput = document.getElementById(`srs2-q${i}-pontos`);
                                 const valor = parseInt(valorInput.value, 10);
                                 
+                                valores[`q${i}_valor`] = valorInput.value;
+
                                 if (valor >= 1 && valor <= 4) {
                                     const isReverse = SRS2Data.reverseScoredItems.includes(i);
                                     const srsScore = isReverse ? (4 - valor) : (valor - 1);
-                                    srsPontos[`q${i}`] = srsScore;
+                                    pontos[`q${i}_pontos`] = srsScore;
                                     if (pontosInput) pontosInput.value = srsScore;
                                 } else {
-                                    srsPontos[`q${i}`] = 0;
+                                    pontos[`q${i}_pontos`] = '';
                                     if (pontosInput) pontosInput.value = '';
                                 }
                              }
                              
                              const rawScores = {};
                              for (const subscale in SRS2Data.subscaleItems) {
-                                rawScores[subscale] = SRS2Data.subscaleItems[subscale].reduce((sum, itemNum) => sum + (srsPontos[`q${itemNum}`] || 0), 0);
+                                rawScores[subscale] = SRS2Data.subscaleItems[subscale].reduce((sum, itemNum) => sum + (parseInt(pontos[`q${itemNum}_pontos`],10) || 0), 0);
                              }
 
                              rawScores.comunicacaoInteracao = rawScores.percepcaoSocial + rawScores.cognicaoSocial + rawScores.comunicacaoSocial + rawScores.motivacaoSocial;
@@ -929,24 +936,13 @@ FSLaudosApp.pageLogic = (() => {
                             updateAgScoreAndClassification(); 
                         }
                     } else if (chaveTesteAtiva === 'WiscIV') {
-                        // [ATUALIZADO] Lógica para o WISC-IV
-                        const subtestGroups = {
-                            compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao', 'informacao', 'raciocinioPalavras'],
-                            organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial', 'completarFiguras'],
-                            memoriaOperacional: ['digitos', 'sequenciaNumerosLetras', 'aritmetica'],
-                            velocidadeProcessamento: ['codigo', 'procurarSimbolos', 'cancelamento']
-                        };
-
                         const updateWiscCalculations = () => {
-                            // Calcula a idade precisa do paciente uma vez
                             const patientAge = FSLaudosApp.calculatePreciseAge(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
                             const weightedScores = {};
                             
                             formConfig.subtests.forEach(sub => {
                                 const rawInput = document.getElementById(`wisc-raw-${sub.id}`);
                                 const rawScore = rawInput ? rawInput.value : '';
-                                
-                                // Passa a idade para a função de cálculo
                                 const result = baremos.getWiscWeightedScore(sub.id, rawScore, patientAge);
                                 
                                 const pondCell = document.getElementById(`wisc-pond-${sub.id}`);
@@ -954,30 +950,31 @@ FSLaudosApp.pageLogic = (() => {
                                 if (pondCell) pondCell.textContent = result.weighted;
                                 if (classCell) classCell.textContent = result.classification;
 
-                                if (result.weighted) {
+                                if (result.weighted !== '') {
                                     weightedScores[sub.id] = parseInt(result.weighted, 10);
                                 }
                             });
 
+                            const mainSubtestsForSum = {
+                                compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao'],
+                                organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial'],
+                                memoriaOperacional: ['digitos', 'sequenciaNumerosLetras'],
+                                velocidadeProcessamento: ['codigo', 'procurarSimbolos']
+                            };
+                            
                             let qiTotalSum = 0;
                             formConfig.compositeScales.forEach(scale => {
                                 if (scale.id === 'qiTotal') return;
 
-                                // Os subtestes principais para o cálculo da soma são fixos e não mudam com a idade
-                                const mainSubtestsForSum = {
-                                    compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao'],
-                                    organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial'],
-                                    memoriaOperacional: ['digitos', 'sequenciaNumerosLetras'],
-                                    velocidadeProcessamento: ['codigo', 'procurarSimbolos']
-                                };
-
                                 const sum = (mainSubtestsForSum[scale.id] || [])
                                     .reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
                                 
-                                qiTotalSum += sum;
+                                if (scale.id !== 'qiTotal') {
+                                    qiTotalSum += sum;
+                                }
 
                                 const sumCell = document.getElementById(`wisc-sum-${scale.id}`);
-                                if(sumCell) sumCell.textContent = sum > 0 ? sum : '';
+                                if (sumCell) sumCell.textContent = sum > 0 ? sum : '';
 
                                 const result = baremos.getWiscCompositeScore(scale.id, sum);
                                 document.getElementById(`wisc-comp-${scale.id}`).textContent = result.composite;
@@ -1113,12 +1110,11 @@ FSLaudosApp.pageLogic = (() => {
                         }
                     }
                     
-                    const saveButton = content.querySelector(`#salvar-parcial-${chaveTesteAtiva}`);
+                    const saveButton = content.querySelector(`#salvar-parcial-${chaveTeste}`);
                     if (saveButton) {
                         saveButton.addEventListener('click', () => {
                             const dataToSave = {};
                             
-                            // Coleta os dados baseado no teste ativo
                             const inputs = content.querySelectorAll('.test-input');
                             inputs.forEach(input => {
                                 if (!input.disabled) {
@@ -1130,6 +1126,8 @@ FSLaudosApp.pageLogic = (() => {
                             laudoRef.update({ [updatePath]: dataToSave })
                                 .then(() => {
                                     alert(`${formConfig.nomeExibicao}: Dados salvos com sucesso!`);
+                                    // [CORREÇÃO] Força a recarga dos dados após salvar para garantir consistência
+                                    laudoRef.get().then(doc => { laudoDataAtual = doc.data(); });
                                 })
                                 .catch(err => {
                                     console.error("Erro ao salvar dados parciais:", err);
@@ -1271,21 +1269,15 @@ FSLaudosApp.pageLogic = (() => {
                         
                         const getWiscResultsData = () => {
                             const pontosBrutos = laudoDataAtual.resultados?.WiscIV?.pontos || {};
+                            if (Object.keys(pontosBrutos).length === 0) return null;
+
                             const formConfig = testForms.WiscIV;
-                            const barem = baremos;
                              const patientAge = FSLaudosApp.calculatePreciseAge(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
 
-                            const subtestGroups = {
-                                compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao', 'informacao', 'raciocinioPalavras'],
-                                organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial', 'completarFiguras'],
-                                memoriaOperacional: ['digitos', 'sequenciaNumerosLetras', 'aritmetica'],
-                                velocidadeProcessamento: ['codigo', 'procurarSimbolos', 'cancelamento']
-                            };
-                            
                             const weightedScores = {};
                             formConfig.subtests.forEach(sub => {
                                 const rawScore = pontosBrutos[sub.id];
-                                const result = barem.getWiscWeightedScore(sub.id, rawScore, patientAge);
+                                const result = baremos.getWiscWeightedScore(sub.id, rawScore, patientAge);
                                 if (result.weighted) {
                                     weightedScores[sub.id] = parseInt(result.weighted, 10);
                                 }
@@ -1304,11 +1296,11 @@ FSLaudosApp.pageLogic = (() => {
                                 const sum = (mainSubtestsForSum[scale.id] || [])
                                     .reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
                                 qiTotalSum += sum;
-                                const compositeResult = barem.getWiscCompositeScore(scale.id, sum);
+                                const compositeResult = baremos.getWiscCompositeScore(scale.id, sum);
                                 return { label: scale.label, id: scale.id, sum, ...compositeResult };
                             }).filter(r => r);
 
-                            const qiResult = barem.getWiscCompositeScore('qiTotal', qiTotalSum);
+                            const qiResult = baremos.getWiscCompositeScore('qiTotal', qiTotalSum);
                             finalResults.push({ label: 'QI Total', id: 'qiTotal', sum: qiTotalSum, ...qiResult });
 
                             return finalResults;
@@ -1317,7 +1309,7 @@ FSLaudosApp.pageLogic = (() => {
                         const setupTabela = () => {
                             destroyActiveChart();
                             const data = getWiscResultsData();
-                            if (!data || data.length === 0 || !data.some(d => d.composite)) {
+                            if (!data) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar a tabela de resultados.</p>';
                                 return;
                             }
@@ -1347,38 +1339,23 @@ FSLaudosApp.pageLogic = (() => {
                         const setupGrafico = () => {
                             destroyActiveChart();
                             const data = getWiscResultsData();
-                             if (!data || data.length === 0 || !data.some(d => d.composite)) {
+                             if (!data) {
                                 resultsContentArea.innerHTML = '<p style="text-align: center;">Preencha os pontos na aba "Teste" para gerar o gráfico.</p>';
                                 return;
                             }
                             
-                            const chartLabels = data.map(d => baremos.WiscIVData.scaleAbbreviations[d.id]);
+                            const chartLabels = data.map(d => FSLaudosApp.testData.WiscIV.data.scaleAbbreviations[d.id]);
                             const chartData = data.map(d => d.composite);
-                            const highestClassification = data.sort((a,b) => b.composite - a.composite)[0]?.classification || '';
                             
                             resultsContentArea.innerHTML = `<div class="chart-wrapper">
                                 <div class="chart-header">
-                                    <h3>ÍNDICES E QI - WISC IV<br><small style="font-weight: normal; color: #555;">${highestClassification}: >130</small></h3>
+                                    <h3>Índices e QI - WISC IV</h3>
                                     <button class="btn-icon" id="download-wisc-chart"><img src="https://img.icons8.com/ios-glyphs/24/000000/download.png" alt="Download"/></button>
                                 </div>
                                 <canvas id="wisc-chart"></canvas>
                             </div>`;
 
-                            const chartBackgroundPlugin = {
-                              id: 'chartAreaBackground',
-                              beforeDraw(chart, args, options) {
-                                const { ctx, chartArea: { top, bottom, left, right, width, height }, scales: { y } } = chart;
-                                if (options.color && options.yMin !== undefined) {
-                                  ctx.save();
-                                  const yMinPixel = y.getPixelForValue(options.yMin);
-                                  const yMaxPixel = y.getPixelForValue(y.max); 
-                                  ctx.fillStyle = options.color;
-                                  ctx.fillRect(left, yMaxPixel, width, yMinPixel - yMaxPixel);
-                                  ctx.restore();
-                                }
-                              }
-                            };
-                            Chart.register(chartBackgroundPlugin, ChartDataLabels);
+                            Chart.register(ChartDataLabels);
 
                             const ctx = document.getElementById('wisc-chart').getContext('2d');
                             activeChart = new Chart(ctx, {
@@ -1402,8 +1379,7 @@ FSLaudosApp.pageLogic = (() => {
                                             anchor: 'end', align: 'top',
                                             font: { weight: 'bold', size: 14 },
                                             color: '#333'
-                                        },
-                                        chartAreaBackground: { color: 'rgba(255, 215, 0, 0.2)', yMin: 130 }
+                                        }
                                     }
                                 }
                             });
