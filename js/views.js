@@ -14,22 +14,53 @@ FSLaudosApp.views = {
         </div>
         <div id="novo-laudo-modal-overlay" class="modal-overlay hidden">
             <div class="modal-content">
-                <div class="modal-header"><h2 id="modal-title">Novo Laudo</h2><button id="close-modal-btn" class="close-modal">×</button></div>
+                <div class="modal-header">
+                    <h2 id="modal-title">Novo Laudo</h2>
+                    <button id="close-modal-btn" class="close-modal">×</button>
+                </div>
                 <form id="novo-laudo-form" class="modal-body">
-                    <div class="form-group"><label for="paciente-nome">* Nome do Paciente</label><input type="text" id="paciente-nome" placeholder="Insira um Nome para o Paciente" required></div>
-                    <div class="form-row">
-                        <div class="form-group"><label for="paciente-nascimento">* Data de Nascimento</label><input type="text" id="paciente-nascimento" placeholder="DD/MM/AAAA" required></div>
-                        <div class="form-group"><label for="data-aplicacao">* Data de Aplicação do Teste</label><input type="text" id="data-aplicacao" placeholder="DD/MM/AAAA" required></div>
+                    
+                    <div class="form-group">
+                        <label for="selecionar-paciente">Selecione um Paciente já Cadastrado</label>
+                        <select id="selecionar-paciente" name="selecionar-paciente">
+                           <option value="" disabled selected>Selecione um Paciente</option>
+                           <!-- Pacientes serão populados pelo JavaScript -->
+                        </select>
                     </div>
-                    <p id="modal-patient-age" style="margin-top: -5px; margin-bottom: 15px; text-align: center; color: #555; font-size: 14px;"></p>
+
+                    <div style="text-align:center; margin: 15px 0; font-weight: 500; color: #888;">ou</div>
+                    
+                    <div class="form-group">
+                        <label for="paciente-nome">Nome do Paciente</label>
+                        <input type="text" id="paciente-nome" placeholder="Insira um Nome para o Paciente" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="paciente-nascimento">Data de Nascimento</label>
+                            <input type="text" id="paciente-nascimento" placeholder="DD/MM/AAAA" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="data-aplicacao">Data de Aplicação do Teste</label>
+                            <input type="text" id="data-aplicacao" placeholder="DD/MM/AAAA" required>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label>Testes</label>
                         <div id="testes-custom-select" class="custom-select-container">
-                            <div class="select-box"><span class="select-text">Selecione os Testes</span><span class="select-arrow"></span></div>
+                            <div class="select-box">
+                                <span class="select-text">Selecione Todos os Testes para o laudo</span>
+                                <span class="select-arrow"></span>
+                            </div>
                             <div id="checkbox-options" class="checkbox-options hidden"></div>
                         </div>
                     </div>
-                    <div class="modal-footer"><button type="button" id="cancel-btn" class="btn btn-secondary">Cancelar</button><button type="submit" class="btn btn-primary">OK</button></div>
+
+                    <div class="modal-footer">
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" style="background-color: #01C8A3; border-color: #01C8A3;">OK</button>
+                    </div>
                 </form>
             </div>
         </div>
