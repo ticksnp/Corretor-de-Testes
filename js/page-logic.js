@@ -32,6 +32,46 @@ FSLaudosApp.calculateAgeInYearsAndMonths = (dobString, appDateString) => {
     return `${years} anos e ${months} meses`;
 };
 
+/**
+ * [ATUALIZADO] Calcula a idade precisa em anos, meses e dias.
+ * @param {string} dobString - Data de nascimento no formato "DD/MM/AAAA".
+ * @param {string} appDateString - Data da aplicação no formato "DD/MM/AAAA".
+ * @returns {object|null} Objeto com { years, months, days } ou null se as datas forem inválidas.
+ */
+FSLaudosApp.calculatePreciseAge = (dobString, appDateString) => {
+    if (!dobString || !appDateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(dobString) || !/^\d{2}\/\d{2}\/\d{4}$/.test(appDateString)) {
+        return null;
+    }
+    const [dobDay, dobMonth, dobYear] = dobString.split('/').map(Number);
+    const [appDay, appMonth, appYear] = appDateString.split('/').map(Number);
+
+    let birthDate = new Date(dobYear, dobMonth - 1, dobDay);
+    let applicationDate = new Date(appYear, appMonth - 1, appDay);
+
+    if (isNaN(birthDate.getTime()) || isNaN(applicationDate.getTime()) || applicationDate < birthDate) {
+        return null;
+    }
+    
+    let years = applicationDate.getFullYear() - birthDate.getFullYear();
+    let months = applicationDate.getMonth() - birthDate.getMonth();
+    let days = applicationDate.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+        months--;
+        // Obter o último dia do mês anterior à aplicação
+        const lastDayOfPreviousMonth = new Date(applicationDate.getFullYear(), applicationDate.getMonth(), 0).getDate();
+        days += lastDayOfPreviousMonth;
+    }
+
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+
+    return { years, months, days };
+};
+
+
 FSLaudosApp.calculateAgeInYearsAtDate = (dobString, appDateString) => {
     if (!dobString || !appDateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(dobString) || !/^\d{2}\/\d{2}\/\d{4}$/.test(appDateString)) return null;
     const [dobDay, dobMonth, dobYear] = dobString.split('/').map(Number);
@@ -847,6 +887,7 @@ FSLaudosApp.pageLogic = (() => {
                             updateAgScoreAndClassification(); 
                         }
                     } else if (chaveTesteAtiva === 'WiscIV') {
+                        // [ATUALIZADO] Lógica para o WISC-IV
                         const subtestGroups = {
                             compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao', 'informacao', 'raciocinioPalavras'],
                             organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial', 'completarFiguras'],
@@ -855,12 +896,16 @@ FSLaudosApp.pageLogic = (() => {
                         };
 
                         const updateWiscCalculations = () => {
+                            // Calcula a idade precisa do paciente uma vez
+                            const patientAge = FSLaudosApp.calculatePreciseAge(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
                             const weightedScores = {};
                             
                             formConfig.subtests.forEach(sub => {
                                 const rawInput = document.getElementById(`wisc-raw-${sub.id}`);
                                 const rawScore = rawInput ? rawInput.value : '';
-                                const result = baremos.getWiscWeightedScore(sub.id, rawScore);
+                                
+                                // Passa a idade para a função de cálculo
+                                const result = baremos.getWiscWeightedScore(sub.id, rawScore, patientAge);
                                 
                                 const pondCell = document.getElementById(`wisc-pond-${sub.id}`);
                                 const classCell = document.getElementById(`wisc-subclass-${sub.id}`);
@@ -876,7 +921,15 @@ FSLaudosApp.pageLogic = (() => {
                             formConfig.compositeScales.forEach(scale => {
                                 if (scale.id === 'qiTotal') return;
 
-                                const sum = subtestGroups[scale.id]
+                                // Os subtestes principais para o cálculo da soma são fixos e não mudam com a idade
+                                const mainSubtestsForSum = {
+                                    compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao'],
+                                    organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial'],
+                                    memoriaOperacional: ['digitos', 'sequenciaNumerosLetras'],
+                                    velocidadeProcessamento: ['codigo', 'procurarSimbolos']
+                                };
+
+                                const sum = (mainSubtestsForSum[scale.id] || [])
                                     .reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
                                 
                                 qiTotalSum += sum;
@@ -1195,6 +1248,8 @@ FSLaudosApp.pageLogic = (() => {
                             const pontosBrutos = laudoDataAtual.resultados?.WiscIV?.pontos || {};
                             const formConfig = testForms.WiscIV;
                             const barem = baremos;
+                             const patientAge = FSLaudosApp.calculatePreciseAge(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
+
                             const subtestGroups = {
                                 compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao', 'informacao', 'raciocinioPalavras'],
                                 organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial', 'completarFiguras'],
@@ -1205,16 +1260,24 @@ FSLaudosApp.pageLogic = (() => {
                             const weightedScores = {};
                             formConfig.subtests.forEach(sub => {
                                 const rawScore = pontosBrutos[sub.id];
-                                const result = barem.getWiscWeightedScore(sub.id, rawScore);
+                                const result = barem.getWiscWeightedScore(sub.id, rawScore, patientAge);
                                 if (result.weighted) {
                                     weightedScores[sub.id] = parseInt(result.weighted, 10);
                                 }
                             });
 
+                            const mainSubtestsForSum = {
+                                compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao'],
+                                organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial'],
+                                memoriaOperacional: ['digitos', 'sequenciaNumerosLetras'],
+                                velocidadeProcessamento: ['codigo', 'procurarSimbolos']
+                            };
+
                             let qiTotalSum = 0;
                             const finalResults = formConfig.compositeScales.map(scale => {
                                 if (scale.id === 'qiTotal') return null;
-                                const sum = subtestGroups[scale.id].reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
+                                const sum = (mainSubtestsForSum[scale.id] || [])
+                                    .reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
                                 qiTotalSum += sum;
                                 const compositeResult = barem.getWiscCompositeScore(scale.id, sum);
                                 return { label: scale.label, id: scale.id, sum, ...compositeResult };
@@ -1723,7 +1786,12 @@ FSLaudosApp.pageLogic = (() => {
                 const sidebar = document.getElementById('testes-sidebar');
                 const exportBtn = document.getElementById('export-laudo-btn');
                 if (headerNome) headerNome.textContent = laudoDataAtual.pacienteNome || "Paciente sem nome";
-                if (headerIdade) headerIdade.textContent = `Idade na Aplicação: ${FSLaudosApp.calculateAgeInYearsAndMonths(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao) || 'inválida'}`;
+                if (headerIdade) {
+                     const idadeString = FSLaudosApp.calculateAgeInYearsAndMonths(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao) || 'inválida';
+                     const preciseAge = FSLaudosApp.calculatePreciseAge(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
+                     const preciseAgeString = preciseAge ? `(${preciseAge.years}a, ${preciseAge.months}m, ${preciseAge.days}d)` : '';
+                     headerIdade.textContent = `Idade na Aplicação: ${idadeString} ${preciseAgeString}`;
+                }
                 if (sidebar) sidebar.innerHTML = `<ul>${(laudoDataAtual.testes || []).map(ch => `<li><a href="#" class="tab-link" data-testid="${ch}">${testForms[ch]?.nomeExibicao || 'Desconhecido'}</a></li>`).join('')}</ul><button id="open-add-test-modal" class="btn btn-secondary btn-add-test">+ Adicionar teste</button>`;
                 if (exportBtn) {
                     const newExportBtn = exportBtn.cloneNode(true);
