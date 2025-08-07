@@ -3,6 +3,7 @@
 FSLaudosApp.testData = FSLaudosApp.testData || {};
 
 FSLaudosApp.baremos = {
+    // --- BPA-2 ---
     getAgeGroupKeyBPA2: function(age) {
         if (FSLaudosApp.testData.BPA2) return FSLaudosApp.testData.BPA2.getAgeGroupKey(age);
         console.error("Dados do BPA-2 não carregados."); return null;
@@ -15,6 +16,8 @@ FSLaudosApp.baremos = {
         if (FSLaudosApp.testData.BPA2) return FSLaudosApp.testData.BPA2.getAverageScore(ageGroupKey, subtest);
         console.error("Dados do BPA-2 não carregados."); return null;
     },
+
+    // --- WISC-IV ---
     getWiscWeightedScore: function(subtestId, rawScore, age) {
         if (FSLaudosApp.testData.WiscIV) {
             this.WiscIVData = FSLaudosApp.testData.WiscIV.data;
@@ -26,6 +29,8 @@ FSLaudosApp.baremos = {
         if (FSLaudosApp.testData.WiscIV) return FSLaudosApp.testData.WiscIV.getCompositeScore(scaleId, sum);
         console.error("Dados do WISC-IV não carregados."); return { composite: '', percentile: '', ci_90: '', ci_95: '', classification: '' };
     },
+
+    // --- SRS-2 ---
     getSrs2TScore: function(subscaleId, rawScore) {
         if (FSLaudosApp.testData.SRS2) {
             this.SRS2Data = FSLaudosApp.testData.SRS2.data;
@@ -37,10 +42,14 @@ FSLaudosApp.baremos = {
         if (FSLaudosApp.testData.SRS2) return FSLaudosApp.testData.SRS2.getClassification(tScore);
         console.error("Dados do SRS-2 não carregados."); return 'Erro';
     },
+
+    // --- ETDAH-AD ---
     getEtdahAdClassification: function(escolaridade, fatorId, resultadoBruto) {
         if (FSLaudosApp.testData.ETDAHAD) return FSLaudosApp.testData.ETDAHAD.getClassification(escolaridade, fatorId, resultadoBruto);
         console.error("Dados do ETDAH-AD não carregados."); return { percentile: '-', classification: 'Erro' };
     },
+
+    // --- RAVLT ---
     getRavltClassification: function(baremType, score) {
         if (FSLaudosApp.testData.RAVLT) {
             this.RAVLTData = FSLaudosApp.testData.RAVLT.data;

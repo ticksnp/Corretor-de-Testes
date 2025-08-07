@@ -1,7 +1,8 @@
 // js/app.js
 
-window.addEventListener('load', () => {
-    // [CORREÇÃO] A lógica de inicialização do Firebase foi movida para cá.
+// [CORREÇÃO CRÍTICA] Usar DOMContentLoaded para garantir que o HTML foi carregado
+// antes de o script tentar encontrar o elemento 'app-content'.
+document.addEventListener('DOMContentLoaded', () => {
     try {
         // Verifica se o Firebase já foi inicializado para evitar erros
         if (!firebase.apps.length) {
@@ -17,13 +18,15 @@ window.addEventListener('load', () => {
     } catch (error) {
         console.error("ERRO CRÍTICO AO INICIALIZAR O FIREBASE NA APLICAÇÃO:", error);
         const appContent = document.getElementById('app-content');
-        appContent.innerHTML = `
-            <div style="padding: 20px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: .25rem;">
-                <h2>Erro Crítico de Conexão</h2>
-                <p>A aplicação não conseguiu se conectar aos serviços em nuvem necessários para funcionar.</p>
-                <p>Por favor, verifique sua conexão com a internet e <strong>recarregue a página</strong>.</p>
-            </div>
-        `;
+        if (appContent) {
+            appContent.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: .25rem;">
+                    <h2>Erro Crítico de Conexão</h2>
+                    <p>A aplicação não conseguiu se conectar aos serviços em nuvem necessários para funcionar.</p>
+                    <p>Por favor, verifique sua conexão com a internet e <strong>recarregue a página</strong>.</p>
+                </div>
+            `;
+        }
     }
 });
 
@@ -34,17 +37,15 @@ function checkAuthenticationAndRunApp() {
     auth.onAuthStateChanged(user => {
         const appContent = document.getElementById('app-content');
         if (!appContent) {
-            console.error("Elemento 'app-content' não encontrado.");
+            console.error("Elemento 'app-content' não foi encontrado. A aplicação não pode ser renderizada.");
             return;
         }
 
         if (user) {
             // --- USUÁRIO LOGADO ---
-            // Se o usuário está logado, inicializa a lógica principal da aplicação.
             initializeAppLogic();
         } else {
             // --- USUÁRIO DESLOGADO ---
-            // Se não há usuário, redireciona para a página de login.
             console.log('Nenhum usuário logado. Redirecionando para a página de login...');
             if (!window.location.pathname.includes('login.html')) {
                 window.location.href = '/login.html';
@@ -108,14 +109,19 @@ function initializeAppLogic() {
         const navMenu = document.getElementById('nav-menu');
         if (navMenu) {
             navMenu.addEventListener('click', (e) => {
-                if (e.target.closest('.config-parent-link')) {
+                const configLink = e.target.closest('.config-parent-link');
+                if (configLink) {
                     e.preventDefault();
-                    const submenu = e.target.closest('.config-parent-link').nextElementSibling;
-                    submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                    const submenu = configLink.nextElementSibling;
+                    const parentLi = configLink.parentElement;
+                    if (submenu) {
+                       submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                       parentLi.classList.toggle('open');
+                    }
                 }
             });
         }
-
+        
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
