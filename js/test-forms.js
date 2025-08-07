@@ -212,7 +212,7 @@ FSLaudosApp.gerarHtmlDoFormulario = function(chaveTeste) {
                 <div class="srs2-item">
                     <label for="srs2-q${num}-valor">${num}</label>
                     <input type="number" id="srs2-q${num}-valor" class="srs2-item-valor test-input" data-field="q${num}_valor" min="1" max="4">
-                    <input type="text" id="srs2-q${num}-pontos" class="srs2-item-pontos test-input" data-field="q${num}_pontos" disabled>
+                    <input type="text" id="srs2-q${num}-pontos" class="srs2-item-pontos" data-field="q${num}_pontos" disabled>
                 </div>`;
         }).join('');
 

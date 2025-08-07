@@ -86,7 +86,7 @@ FSLaudosApp.pageLogic = (() => {
 
             const { testForms } = FSLaudosApp;
             const appContent = document.getElementById('app-content');
-            let selectedTestKeys = []; // Variável para guardar os testes selecionados
+            let selectedTestKeys = [];
             
             const renderLaudosTable = () => {
                 const tableBody = document.getElementById('laudos-table-body');
@@ -123,7 +123,7 @@ FSLaudosApp.pageLogic = (() => {
                 const freshForm = laudoForm.cloneNode(true);
                 laudoForm.parentNode.replaceChild(freshForm, laudoForm);
                 freshForm.reset();
-                selectedTestKeys = []; // Limpa os testes selecionados ao abrir o modal
+                selectedTestKeys = [];
                 delete freshForm.dataset.editingId;
 
                 const pacienteSelect = freshForm.querySelector('#selecionar-paciente');
@@ -793,7 +793,7 @@ FSLaudosApp.pageLogic = (() => {
             let chaveTesteAtiva = '';
 
             const renderContentPane = (tabName) => {
-                destroyActiveChart(); 
+                destroyActiveChart();
                 const content = document.getElementById('preenchimento-content');
                 if (!content) return;
                 
@@ -935,18 +935,21 @@ FSLaudosApp.pageLogic = (() => {
                             });
                             updateAgScoreAndClassification(); 
                         }
-                    } else if (chaveTesteAtiva === 'WiscIV') {
+                     if (chaveTesteAtiva === 'WiscIV') {
                         const updateWiscCalculations = () => {
                             const patientAge = FSLaudosApp.calculatePreciseAge(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
                             const weightedScores = {};
                             
+                            // 1. Calcular Pontos Ponderados para cada subteste
                             formConfig.subtests.forEach(sub => {
                                 const rawInput = document.getElementById(`wisc-raw-${sub.id}`);
                                 const rawScore = rawInput ? rawInput.value : '';
+                                
                                 const result = baremos.getWiscWeightedScore(sub.id, rawScore, patientAge);
                                 
                                 const pondCell = document.getElementById(`wisc-pond-${sub.id}`);
                                 const classCell = document.getElementById(`wisc-subclass-${sub.id}`);
+                                
                                 if (pondCell) pondCell.textContent = result.weighted;
                                 if (classCell) classCell.textContent = result.classification;
 
@@ -955,24 +958,20 @@ FSLaudosApp.pageLogic = (() => {
                                 }
                             });
 
+                            // 2. Calcular Somas e Pontos Compostos para Índices
                             const mainSubtestsForSum = {
                                 compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao'],
                                 organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial'],
                                 memoriaOperacional: ['digitos', 'sequenciaNumerosLetras'],
                                 velocidadeProcessamento: ['codigo', 'procurarSimbolos']
                             };
-                            
-                            let qiTotalSum = 0;
+
                             formConfig.compositeScales.forEach(scale => {
                                 if (scale.id === 'qiTotal') return;
 
                                 const sum = (mainSubtestsForSum[scale.id] || [])
                                     .reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
                                 
-                                if (scale.id !== 'qiTotal') {
-                                    qiTotalSum += sum;
-                                }
-
                                 const sumCell = document.getElementById(`wisc-sum-${scale.id}`);
                                 if (sumCell) sumCell.textContent = sum > 0 ? sum : '';
 
@@ -984,8 +983,18 @@ FSLaudosApp.pageLogic = (() => {
                                 document.getElementById(`wisc-class-${scale.id}`).textContent = result.classification;
                             });
 
+                            // 3. Calcular Soma e QI Total
+                             const mainSubtestsForQIT = [
+                                'semelhancas', 'vocabulario', 'compreensao',
+                                'cubos', 'conceitosFigurativos', 'raciocinioMatricial',
+                                'digitos', 'sequenciaNumerosLetras',
+                                'codigo', 'procurarSimbolos'
+                            ];
+                            const qiTotalSum = mainSubtestsForQIT.reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
+
                             const qiSumCell = document.getElementById('wisc-sum-qiTotal');
                             if (qiSumCell) qiSumCell.textContent = qiTotalSum > 0 ? qiTotalSum : '';
+                            
                             const qiResult = baremos.getWiscCompositeScore('qiTotal', qiTotalSum);
                             document.getElementById('wisc-comp-qiTotal').textContent = qiResult.composite;
                             document.getElementById('wisc-perc-qiTotal').textContent = qiResult.percentile;
@@ -997,12 +1006,14 @@ FSLaudosApp.pageLogic = (() => {
                         const testData = laudoDataAtual.resultados?.[chaveTesteAtiva]?.pontos || {};
                         content.querySelectorAll('.wisc-raw-score').forEach(input => {
                             const field = input.dataset.field;
-                            if (testData[field] !== undefined && testData[field] !== null) {
-                                input.value = testData[field];
-                            }
+                            // CORREÇÃO: Evita que 'null' seja escrito no campo
+                            input.value = testData[field] ?? '';
                             input.addEventListener('input', updateWiscCalculations);
                         });
+                        
+                        // Executa o cálculo uma vez ao carregar para preencher com os dados salvos
                         updateWiscCalculations(); 
+                    }  
                     } else if (chaveTesteAtiva === 'RAVLT') {
                         const updateRavltCalculations = () => {
                             const get = (id) => parseFloat(document.getElementById(`ravlt-${id}`)?.value) || 0;
@@ -1114,24 +1125,32 @@ FSLaudosApp.pageLogic = (() => {
                     if (saveButton) {
                         saveButton.addEventListener('click', () => {
                             const dataToSave = {};
-                            
                             const inputs = content.querySelectorAll('.test-input');
                             inputs.forEach(input => {
                                 if (!input.disabled) {
-                                    dataToSave[input.dataset.field] = input.type === 'number' ? (input.valueAsNumber || null) : input.value;
+                                    const value = input.type === 'number' ? (input.valueAsNumber || null) : input.value;
+                                    // Evita salvar NaN, que não é suportado pelo Firestore
+                                    dataToSave[input.dataset.field] = isNaN(value) ? null : value;
                                 }
                             });
                             
                             const updatePath = `resultados.${chaveTesteAtiva}.pontos`;
+                            saveButton.textContent = 'Salvando...';
+                            saveButton.disabled = true;
+
                             laudoRef.update({ [updatePath]: dataToSave })
                                 .then(() => {
-                                    alert(`${formConfig.nomeExibicao}: Dados salvos com sucesso!`);
-                                    // [CORREÇÃO] Força a recarga dos dados após salvar para garantir consistência
-                                    laudoRef.get().then(doc => { laudoDataAtual = doc.data(); });
+                                    saveButton.textContent = 'Salvo!';
+                                    setTimeout(() => {
+                                        saveButton.textContent = 'Salvar Pontos Brutos';
+                                        saveButton.disabled = false;
+                                    }, 1500);
                                 })
                                 .catch(err => {
                                     console.error("Erro ao salvar dados parciais:", err);
                                     alert("Erro ao salvar os dados. Por favor, tente novamente.");
+                                    saveButton.textContent = 'Salvar Pontos Brutos';
+                                    saveButton.disabled = false;
                                 });
                         });
                     }
