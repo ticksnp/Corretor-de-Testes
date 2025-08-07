@@ -148,22 +148,43 @@ FSLaudosApp.baremos = {
     },
 
     WiscIVData: {
-        rawToWeighted: {
-            cubos: { '49': { weighted: 19, classification: 'Superior' } },
-            semelhancas: { '27': { weighted: 17, classification: 'Superior' } },
-            digitos: { '16': { weighted: 14, classification: 'Superior' } },
-            conceitosFigurativos: { '13': { weighted: 11, classification: 'Médio Superior' } },
-            codigo: { '56': { weighted: 14, classification: 'Superior' } },
-            vocabulario: { '33': { weighted: 16, classification: 'Superior' } },
-            sequenciaNumerosLetras: { '20': { weighted: 18, classification: 'Superior' } },
-            raciocinioMatricial: { '17': { weighted: 13, classification: 'Superior' } },
-            compreensao: { '26': { weighted: 18, classification: 'Superior' } },
-            procurarSimbolos: { '29': { weighted: 14, classification: 'Superior' } },
-            completarFiguras: { '19': { weighted: 12, classification: 'Médio Superior' } },
-            cancelamento: { '96': { weighted: 18, classification: 'Superior' } },
-            informacao: { '9': { weighted: 9, classification: 'Médio' } },
-            aritmetica: { '21': { weighted: 16, classification: 'Superior' } },
-            raciocinioPalavras: { '13': { weighted: 15, classification: 'Superior' } }
+        // [NOVO] Estrutura para armazenar os baremos por faixa etária
+        rawToWeightedByAge: {
+            '6:0-6:3': { // Tabela A.1.1
+                cubos: { 1: [[0,2]], 2: [3], 3: [4], 4: [5], 5: [[6,7]], 6: [[8,9]], 7: [10], 8: [[11,12]], 9: [13], 10: [[14,16]], 11: [[17,19]], 12: [[20,23]], 13: [[24,26]], 14: [[27,28]], 15: [[29,32]], 16: [[33,36]], 17: [[37,39]], 18: [[40,44]], 19: [[45,68]] },
+                semelhancas: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [[5,6]], 7: [7], 8: [[8,9]], 9: [10], 10: [11], 11: [12], 12: [13], 13: [14], 14: [15], 15: [[16,17]], 16: [[18,19]], 17: [[20,21]], 18: [[22,24]], 19: [[25,28]] },
+                digitos: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [[8,9]], 10: [[10,12]], 11: [13], 12: [[14,15]], 13: [16], 14: [[17,18]], 15: [[19,21]], 16: [[22,24]], 17: [25], 18: [[26,27]], 19: [[28,32]] },
+                conceitosFigurativos: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [[8,9]], 10: [10], 11: [11], 12: [12], 13: [13], 14: [[14,15]], 15: [[16,17]], 16: [[18,19]], 17: [20], 18: [21], 19: [[22,28]] },
+                codigo: { 1: [[0,20]], 2: [[21,23]], 3: [[24,26]], 4: [[27,29]], 5: [[30,31]], 6: [[32,35]], 7: [[36,40]], 8: [[41,44]], 9: [[45,49]], 10: [[50,53]], 11: [[54,57]], 12: [[58,60]], 13: [[61,62]], 14: [63], 15: [64], 16: [65], 17: [66], 18: [67], 19: [[68,119]] },
+                vocabulario: { 1: [0], 2: [1], 3: [[2,3]], 4: [4], 5: [[5,6]], 6: [7], 7: [[8,9]], 8: [10], 9: [[11,12]], 10: [13], 11: [14], 12: [15], 13: [16], 14: [[17,19]], 15: [[20,22]], 16: [[23,24]], 17: [[25,27]], 18: [[28,30]], 19: [[31,66]] },
+                sequenciaNumerosLetras: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [[5,6]], 7: [7], 8: [8], 9: [9], 10: [10], 11: [11], 12: [12], 13: [13], 14: [14], 15: [15], 16: [16], 17: [[17,21]], 18: [22], 19: [[23,30]] },
+                raciocinioMatricial: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [[9,10]], 11: [11], 12: [[12,13]], 13: [14], 14: [15], 15: [16], 16: [17], 17: [[18,20]], 18: [[21,22]], 19: [[23,35]] },
+                compreensao: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [[8,9]], 10: [10], 11: [[11,12]], 12: [13], 13: [14], 14: [15], 15: [[16,17]], 16: [[18,19]], 17: [[20,21]], 18: [22], 19: [[23,42]] },
+                procurarSimbolos: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [[12,13]], 14: [[14,16]], 15: [17], 16: [[18,20]], 17: [[21,23]], 18: [[24,26]], 19: [[27,60]] },
+                completarFiguras: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [[4,5]], 6: [[6,7]], 7: [8], 8: [9], 9: [10], 10: [[11,12]], 11: [13], 12: [14], 13: [[15,16]], 14: [17], 15: [[18,19]], 16: [20], 17: [21], 18: [22], 19: [[23,38]] },
+                cancelamento: { 1: [0], 2: [[1,12]], 3: [[13,23]], 4: [[24,32]], 5: [[33,37]], 6: [[38,43]], 7: [[44,48]], 8: [[49,54]], 9: [[55,60]], 10: [[61,67]], 11: [[68,73]], 12: [[74,79]], 13: [[80,86]], 14: [[87,93]], 15: [[94,101]], 16: [[102,108]], 17: [109], 18: [[110,111]], 19: [[112,136]] },
+                informacao: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [12], 14: [13], 15: [14], 16: [15], 17: [16], 18: [17], 19: [[18,33]] },
+                aritmetica: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [12], 14: [13], 15: [14], 16: [15], 17: [16], 18: [[17,18]], 19: [[19,34]] },
+                raciocinioPalavras: { 1: [[0,1]], 2: [2], 3: [3], 4: [4], 5: [5], 6: [6], 7: [7], 8: [8], 9: [9], 10: [10], 11: [11], 12: [12], 13: [13], 14: [14], 15: [15], 16: [16], 17: [17], 18: [18], 19: [[19,24]] }
+            },
+            '6:4-6:7': { // Tabela A.1.2
+                cubos: { 1: [0], 2: [[1,2]], 3: [3], 4: [4], 5: [5], 6: [[6,7]], 7: [[8,10]], 8: [[11,13]], 9: [[14,15]], 10: [[16,18]], 11: [[19,20]], 12: [[21,23]], 13: [[24,26]], 14: [[27,30]], 15: [[31,33]], 16: [[34,37]], 17: [[38,41]], 18: [[42,47]], 19: [[48,68]] },
+                semelhancas: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [[8,9]], 10: [10], 11: [11], 12: [12], 13: [13], 14: [[14,15]], 15: [[16,17]], 16: [[18,19]], 17: [[20,22]], 18: [[23,25]], 19: [[26,28]] },
+                digitos: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [[8,9]], 10: [10], 11: [[11,12]], 12: [13], 13: [14], 14: [[15,16]], 15: [17], 16: [[18,19]], 17: [[20,22]], 18: [[23,24]], 19: [[25,32]] },
+                conceitosFigurativos: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [[7,8]], 9: [9], 10: [10], 11: [11], 12: [12], 13: [13], 14: [14], 15: [15], 16: [16], 17: [[17,19]], 18: [[20,21]], 19: [[22,28]] },
+                codigo: { 1: [[0,1]], 2: [2], 3: [[3,4]], 4: [5], 5: [[6,7]], 6: [[8,9]], 7: [[10,11]], 8: [[12,14]], 9: [[15,16]], 10: [17], 11: [18], 12: [19], 13: [20], 14: [21], 15: [22], 16: [23], 17: [24], 18: [25], 19: [26] },
+                vocabulario: { 1: [[0,1]], 2: [2], 3: [3], 4: [4], 5: [5], 6: [6], 7: [[7,8]], 8: [9], 9: [10], 10: [[11,12]], 11: [13], 12: [14], 13: [15], 14: [16], 15: [[17,18]], 16: [[19,20]], 17: [[21,24]], 18: [[25,28]], 19: [[29,44]] },
+                sequenciaNumerosLetras: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [12], 14: [13], 15: [14], 16: [15], 17: [[16,17]], 18: [[18,19]], 19: [[20,30]] },
+                raciocinioMatricial: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [[10,11]], 12: [12], 13: [13], 14: [14], 15: [15], 16: [[16,17]], 17: [[18,19]], 18: [20], 19: [[21,35]] },
+                compreensao: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [[12,13]], 14: [14], 15: [15], 16: [16], 17: [17], 18: [18], 19: [[19,42]] },
+                procurarSimbolos: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [12], 14: [13], 15: [14], 16: [15], 17: [16], 18: [17], 19: [[18,60]] },
+                completarFiguras: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [[8,9]], 10: [[10,11]], 11: [12], 12: [13], 13: [14], 14: [[15,16]], 15: [17], 16: [18], 17: [19], 18: [20], 19: [[21,38]] },
+                cancelamento: { 1: [0], 2: [[1,11]], 3: [[12,16]], 4: [[17,20]], 5: [[21,25]], 6: [[26,30]], 7: [[31,35]], 8: [[36,40]], 9: [[41,46]], 10: [[47,51]], 11: [[52,57]], 12: [[58,64]], 13: [[65,70]], 14: [[71,76]], 15: [[77,83]], 16: [[84,89]], 17: [[90,96]], 18: [[97,106]], 19: [[107,136]] },
+                informacao: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [12], 14: [13], 15: [14], 16: [15], 17: [16], 18: [[17,18]], 19: [[19,33]] },
+                aritmetica: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [12], 14: [13], 15: [[14,15]], 16: [16], 17: [17], 18: [18], 19: [[19,34]] },
+                raciocinioPalavras: { 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [5], 7: [6], 8: [7], 9: [8], 10: [9], 11: [10], 12: [11], 13: [12], 14: [13], 15: [14], 16: [15], 17: [16], 18: [17], 19: [[18,24]] }
+            }
+            // ... outras faixas etárias podem ser adicionadas aqui
         },
         sumToComposite: {
             compreensaoVerbal: { '51': { composite: 141, percentile: 99.7, ci_90: '132-144', ci_95: '131-145', classification: 'Muito Superior' } },
@@ -278,11 +299,82 @@ FSLaudosApp.baremos = {
         return 'Inválido';
     },
 
-    getWiscWeightedScore: function(subtest, rawScore) {
+    /**
+     * [NOVO] Retorna a chave do grupo de idade do WISC-IV com base na idade precisa.
+     * @param {object} age - Objeto com { years, months, days }.
+     * @returns {string|null} A chave do grupo de idade (ex: '6:0-6:3') ou null.
+     */
+    getWiscIVAgeGroup: function(age) {
+        if (!age) return null;
+        
+        const totalMonths = age.years * 12 + age.months;
+
+        if (age.years === 6 && totalMonths >= 0 && totalMonths <= 3) {
+             // De 6 anos, 0 meses, 0 dias até 6 anos, 3 meses, 30 dias
+            if (totalMonths < 3 || (totalMonths === 3 && age.days <= 30)) {
+                return '6:0-6:3';
+            }
+        }
+        if (age.years === 6 && totalMonths >= 4 && totalMonths <= 7) {
+            // De 6 anos, 4 meses, 0 dias até 6 anos, 7 meses, 30 dias
+             if (totalMonths < 7 || (totalMonths === 7 && age.days <= 30)) {
+                return '6:4-6:7';
+            }
+        }
+
+        // Adicionar outras faixas etárias aqui conforme necessário
+        // Ex:
+        // if (age.years === 6 && totalMonths >= 8 && totalMonths <= 11) { ... }
+        
+        return null; // Retorna nulo se a idade estiver fora das faixas definidas
+    },
+
+    /**
+     * [ATUALIZADO] Busca o ponto ponderado e a classificação no WISC-IV com base na idade.
+     * @param {string} subtest - O ID do subteste (ex: 'cubos').
+     * @param {string|number} rawScore - O ponto bruto obtido.
+     * @param {object} age - Objeto com a idade precisa { years, months, days }.
+     * @returns {object} Objeto com { weighted, classification }.
+     */
+    getWiscWeightedScore: function(subtest, rawScore, age) {
         const fallback = { weighted: '', classification: '' };
-        if (rawScore === '' || rawScore === null || rawScore === undefined) return fallback;
-        const table = this.WiscIVData.rawToWeighted[subtest];
-        return table ? (table[rawScore] || fallback) : fallback;
+        const scoreNum = parseInt(rawScore, 10);
+
+        if (rawScore === '' || rawScore === null || isNaN(scoreNum)) {
+            return fallback;
+        }
+
+        const ageGroupKey = this.getWiscIVAgeGroup(age);
+        if (!ageGroupKey) {
+            // Se não encontrar um grupo de idade, pode retornar um erro ou um fallback
+            return { weighted: '', classification: 'Idade fora da faixa' };
+        }
+
+        const ageGroupTable = this.WiscIVData.rawToWeightedByAge[ageGroupKey];
+        if (!ageGroupTable || !ageGroupTable[subtest]) {
+            return { weighted: '', classification: 'Baremo não encontrado' };
+        }
+
+        const subtestTable = ageGroupTable[subtest];
+        for (const weightedPoint in subtestTable) {
+            const scoreRanges = subtestTable[weightedPoint]; // ex: [[14,16], [18,18]]
+            for (const range of scoreRanges) {
+                if (scoreNum >= range[0] && scoreNum <= range[1]) {
+                    const weighted = parseInt(weightedPoint, 10);
+                    let classification = 'Médio'; // Padrão
+                    if (weighted >= 13) classification = 'Superior';
+                    if (weighted >= 16) classification = 'Muito Superior';
+                    if (weighted <= 7) classification = 'Inferior';
+                    if (weighted <= 4) classification = 'Muito Inferior';
+                    if (weighted >= 11 && weighted <= 12) classification = 'Médio Superior';
+                    if (weighted >= 8 && weighted <= 10) classification = 'Médio';
+
+                    return { weighted: weightedPoint, classification };
+                }
+            }
+        }
+
+        return fallback; // Retorna se o ponto bruto não for encontrado em nenhuma faixa
     },
 
     getWiscCompositeScore: function(scale, weightedSum) {
