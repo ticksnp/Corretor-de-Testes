@@ -221,7 +221,7 @@ FSLaudosApp.pageLogic = (() => {
                         modalOverlay.classList.add('hidden');
                         renderLaudosTable();
                     }).catch(err => {
-                        console.error("Erro ao salvar laudo:", err);
+                        console.error("Erro ao salvar laudo: ", err);
                         alert('Erro ao salvar o laudo.');
                     });
                 });
@@ -1113,45 +1113,28 @@ FSLaudosApp.pageLogic = (() => {
                         }
                     }
                     
-                    const saveButton = content.querySelector(`#salvar-parcial-${chaveTeste}`);
+                    const saveButton = content.querySelector(`#salvar-parcial-${chaveTesteAtiva}`);
                     if (saveButton) {
                         saveButton.addEventListener('click', () => {
                             const dataToSave = {};
-                            let inputs;
-
-                             if (chaveTesteAtiva === 'SRS2EscolarMasc' || chaveTesteAtiva === 'SRS2EscolarFem') {
-                                for(let i = 1; i <= 65; i++){
-                                    const valorInput = document.getElementById(`srs2-q${i}-valor`);
-                                    const pontosInput = document.getElementById(`srs2-q${i}-pontos`);
-                                    dataToSave[`q${i}_valor`] = valorInput.value;
-                                    dataToSave[`q${i}_pontos`] = pontosInput.value;
+                            
+                            // Coleta os dados baseado no teste ativo
+                            const inputs = content.querySelectorAll('.test-input');
+                            inputs.forEach(input => {
+                                if (!input.disabled) {
+                                    dataToSave[input.dataset.field] = input.type === 'number' ? (input.valueAsNumber || null) : input.value;
                                 }
-                            } else if (chaveTesteAtiva === 'WiscIV') {
-                                inputs = content.querySelectorAll('.wisc-raw-score');
-                                inputs.forEach(input => {
-                                    if (!input.disabled) dataToSave[input.dataset.field] = input.value;
-                                });
-                            } else if (chaveTesteAtiva === 'RAVLT') {
-                                inputs = content.querySelectorAll('.ravlt-input-field');
-                                inputs.forEach(input => {
-                                    if (!input.disabled) dataToSave[input.dataset.field] = input.type === 'number' ? (input.valueAsNumber || null) : input.value;
-                                });
-                            } else if (chaveTesteAtiva === 'ETDAHAD') {
-                                dataToSave.escolaridade = content.querySelector('#etdah-escolaridade').value;
-                                for (let i = 1; i <= 69; i++) {
-                                    dataToSave[`q${i}`] = content.querySelector(`#etdah-q-${i}`).value;
-                                }
-                            } else {
-                                inputs = content.querySelectorAll('.test-input');
-                                inputs.forEach(input => {
-                                    if (!input.disabled) dataToSave[input.dataset.field] = input.type === 'number' ? (input.valueAsNumber || null) : input.value;
-                                });
-                            }
+                            });
                             
                             const updatePath = `resultados.${chaveTesteAtiva}.pontos`;
                             laudoRef.update({ [updatePath]: dataToSave })
-                                .then(() => alert(`${formConfig.nomeExibicao}: Dados salvos com sucesso!`))
-                                .catch(err => console.error("Erro ao salvar dados parciais:", err));
+                                .then(() => {
+                                    alert(`${formConfig.nomeExibicao}: Dados salvos com sucesso!`);
+                                })
+                                .catch(err => {
+                                    console.error("Erro ao salvar dados parciais:", err);
+                                    alert("Erro ao salvar os dados. Por favor, tente novamente.");
+                                });
                         });
                     }
                 } else if (tabName === 'resultados') {
@@ -1742,7 +1725,8 @@ FSLaudosApp.pageLogic = (() => {
                 } else if (tabName === 'detalhes') {
                     content.innerHTML = formConfig.detalhesHtml || '<div class="main-card"><p>Nenhum detalhe adicional.</p></div>';
                 }
-            };  
+            };
+
             const setActiveTest = (chave) => {
                 chaveTesteAtiva = chave;
                 document.querySelectorAll('#page-tabs-container .test-tab-link').forEach(l => l.classList.remove('active'));
@@ -1753,70 +1737,6 @@ FSLaudosApp.pageLogic = (() => {
                 renderContentPane('teste');
             };
             
-            const handleOpenAddTestModal = () => {
-                const modalOverlay = document.getElementById('add-test-modal-overlay');
-                if (!modalOverlay) return;
-                
-                const form = document.getElementById('add-test-form');
-                const newForm = form.cloneNode(true); 
-                form.parentNode.replaceChild(newForm, form);
-
-                const checkboxContainer = newForm.querySelector('#add-test-checkbox-options');
-                const customSelect = modalOverlay.querySelector('.custom-select-container');
-                const selectBox = newForm.querySelector('.select-box');
-                const selectText = selectBox.querySelector('.select-text');
-
-                selectText.textContent = 'Selecione os testes a adicionar';
-                customSelect.classList.remove('open');
-                checkboxContainer.classList.add('hidden');
-
-                const existingTests = laudoDataAtual.testes || [];
-                const availableTests = Object.keys(testForms)
-                    .filter(key => !existingTests.includes(key))
-                    .map(key => ({ id: key, name: testForms[key].nomeExibicao }))
-                    .sort((a, b) => a.name.localeCompare(b.name));
-
-                if (availableTests.length === 0) {
-                    checkboxContainer.innerHTML = '<div style="padding: 10px; text-align: center; color: #6c757d;">Todos os testes já foram adicionados.</div>';
-                } else {
-                    checkboxContainer.innerHTML = '<ul class="treenode-list">' + availableTests.map(teste => {
-                        const cleanNameId = teste.name.replace(/[^a-zA-Z0-9]/g, "");
-                        return `<li class="treenode-leaf"><div class="treenode-content"><input type="checkbox" name="testeToAdd" value="${teste.id}" id="modal-add-teste-${cleanNameId}"><label for="modal-add-teste-${cleanNameId}">${teste.name}</label></div></li>`;
-                    }).join('') + '</ul>';
-                }
-                
-                selectBox.addEventListener('click', () => {
-                    customSelect.classList.toggle('open');
-                    checkboxContainer.classList.toggle('hidden');
-                });
-                
-                checkboxContainer.addEventListener('change', () => {
-                    const checked = Array.from(checkboxContainer.querySelectorAll('input:checked'));
-                    selectText.textContent = checked.length > 0 ? checked.map(cb => testForms[cb.value]?.nomeExibicao).join(', ') : 'Selecione os testes a adicionar';
-                });
-
-                newForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const selectedTestKeys = Array.from(newForm.querySelectorAll('input[name="testeToAdd"]:checked')).map(cb => cb.value);
-
-                    if (selectedTestKeys.length > 0) {
-                        const updatedTests = [...existingTests, ...selectedTestKeys];
-                        laudoRef.update({ testes: updatedTests })
-                            .then(() => {
-                                modalOverlay.classList.add('hidden');
-                            })
-                            .catch(err => {
-                                console.error("Erro ao adicionar testes:", err);
-                                alert("Não foi possível adicionar os testes.");
-                            });
-                    } else {
-                         modalOverlay.classList.add('hidden');
-                    }
-                });
-
-                modalOverlay.classList.remove('hidden');
-            };
-
             laudoRef.onSnapshot((doc) => {
                 if (!doc.exists) {
                     appContent.innerHTML = '<h1>Laudo não encontrado.</h1>';
@@ -1834,7 +1754,9 @@ FSLaudosApp.pageLogic = (() => {
                      const preciseAgeString = preciseAge ? `(${preciseAge.years}a, ${preciseAge.months}m, ${preciseAge.days}d)` : '';
                      headerIdade.textContent = `Idade na Aplicação: ${idadeString} ${preciseAgeString}`;
                 }
-                if (sidebar) sidebar.innerHTML = `<ul>${(laudoDataAtual.testes || []).map(ch => `<li><a href="#" class="tab-link" data-testid="${ch}">${testForms[ch]?.nomeExibicao || 'Desconhecido'}</a></li>`).join('')}</ul><button id="open-add-test-modal" class="btn btn-secondary btn-add-test">+ Adicionar teste</button>`;
+                if (sidebar) {
+                    sidebar.innerHTML = `<ul>${(laudoDataAtual.testes || []).map(ch => `<li><a href="#" class="tab-link" data-testid="${ch}">${testForms[ch]?.nomeExibicao || 'Desconhecido'}</a></li>`).join('')}</ul><button id="open-add-test-modal" class="btn btn-secondary btn-add-test">+ Adicionar teste</button>`;
+                }
                 if (exportBtn) {
                     const newExportBtn = exportBtn.cloneNode(true);
                     exportBtn.parentNode.replaceChild(newExportBtn, exportBtn);
@@ -1857,11 +1779,10 @@ FSLaudosApp.pageLogic = (() => {
                 console.error("Erro ao buscar laudo: ", error);
                 appContent.innerHTML = '<h1>Erro ao carregar o laudo.</h1>';
             });
+
             appContent.addEventListener('click', e => {
                 const sidebarLink = e.target.closest('#testes-sidebar .tab-link');
                 const tabLink = e.target.closest('#page-tabs-container .test-tab-link');
-                const addTestBtn = e.target.closest('#open-add-test-modal');
-                const closeAddTestModalBtn = e.target.closest('#close-add-test-modal-btn, #cancel-add-test-btn');
 
                 if (sidebarLink && !sidebarLink.classList.contains('active')) {
                     e.preventDefault();
@@ -1872,14 +1793,6 @@ FSLaudosApp.pageLogic = (() => {
                     document.querySelectorAll('#page-tabs-container .test-tab-link').forEach(l => l.classList.remove('active'));
                     tabLink.classList.add('active');
                     renderContentPane(tabLink.dataset.tabContent);
-                }
-                if (addTestBtn) {
-                    e.preventDefault();
-                    handleOpenAddTestModal();
-                }
-                if (closeAddTestModalBtn) {
-                    e.preventDefault();
-                    document.getElementById('add-test-modal-overlay').classList.add('hidden');
                 }
             });
         },
