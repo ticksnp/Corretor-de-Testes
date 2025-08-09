@@ -6,20 +6,19 @@ body {
     font-family: 'Roboto', sans-serif;
     color: #333;
     font-size: 15px;
-    /* [REMOVIDO] A imagem de fundo foi removida do body */
 }
 
-/* [NOVO] Container principal que divide a tela */
+/* Container principal que divide a tela */
 .login-page-container {
     display: flex;
     width: 100vw;
     height: 100vh;
 }
 
-/* [NOVO] Painel esquerdo que contém o formulário */
+/* Painel esquerdo que contém o formulário */
 .form-panel {
-    flex-basis: 40%; /* O painel do formulário ocupará 40% da tela */
-    min-width: 450px; /* Garante que o formulário não fique muito espremido */
+    flex-basis: 40%; 
+    min-width: 450px; 
     background-color: #ffffff;
     display: flex;
     justify-content: center;
@@ -28,20 +27,19 @@ body {
     box-sizing: border-box;
 }
 
-/* [NOVO] Painel direito que exibe a imagem de fundo */
+/* Painel direito que exibe a imagem de fundo */
 .image-panel {
-    flex-grow: 1; /* Ocupa o restante do espaço */
-    background-image: url('/images/background-login.jpg'); /* Sua imagem de fundo vai aqui */
+    flex-grow: 1; 
+    background-image: url('/images/background-login.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
-/* [MODIFICADO] Estilos para a caixa do formulário, agora mais simples */
+/* Estilos para a caixa do formulário, agora mais simples */
 .login-box {
     width: 100%;
     max-width: 400px;
-    /* Removidos background, box-shadow e backdrop-filter, pois o painel já é branco */
 }
 
 h2 {
@@ -102,8 +100,8 @@ h2 {
 }
 
 .links {
-    display: flex;
-    justify-content: space-between;
+    /* [MODIFICADO] Removido o flexbox e alinhado o texto à direita. */
+    text-align: right;
     margin-top: 18px;
 }
 
@@ -143,7 +141,7 @@ h2 {
     display: none;
 }
 
-/* [NOVO] Estilos para telas menores (celulares) */
+/* Estilos para telas menores (celulares) */
 @media (max-width: 900px) {
     /* Em telas menores, o painel da imagem some e o formulário ocupa tudo */
     .image-panel {
@@ -154,5 +152,10 @@ h2 {
         flex-basis: 100%;
         min-width: unset;
         padding: 20px;
+    }
+
+    /* [MODIFICADO] Alinha o link restante ao centro em telas pequenas. */
+    .links {
+        text-align: center;
     }
 }
