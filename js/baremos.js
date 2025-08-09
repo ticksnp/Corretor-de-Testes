@@ -20,20 +20,20 @@ FSLaudosApp.baremos = {
     // --- WISC-IV ---
     getWiscWeightedScore: function(subtestId, rawScore, age) {
         if (FSLaudosApp.testData.WiscIV) {
-            this.WiscIVData = FSLaudosApp.testData.WiscIV.data;
             return FSLaudosApp.testData.WiscIV.getWeightedScore(subtestId, rawScore, age);
         }
         console.error("Dados do WISC-IV não carregados."); return { weighted: '', classification: '' };
     },
     getWiscCompositeScore: function(scaleId, sum) {
-        if (FSLaudosApp.testData.WiscIV) return FSLaudosApp.testData.WiscIV.getCompositeScore(scaleId, sum);
+        if (FSLaudosApp.testData.WiscIV) {
+            return FSLaudosApp.testData.WiscIV.getCompositeScore(scaleId, sum);
+        }
         console.error("Dados do WISC-IV não carregados."); return { composite: '', percentile: '', ci_90: '', ci_95: '', classification: '' };
     },
 
     // --- SRS-2 ---
     getSrs2TScore: function(subscaleId, rawScore) {
         if (FSLaudosApp.testData.SRS2) {
-            this.SRS2Data = FSLaudosApp.testData.SRS2.data;
             return FSLaudosApp.testData.SRS2.getTScore(subscaleId, rawScore);
         }
         console.error("Dados do SRS-2 não carregados."); return '';
@@ -52,7 +52,6 @@ FSLaudosApp.baremos = {
     // --- RAVLT ---
     getRavltClassification: function(baremType, score) {
         if (FSLaudosApp.testData.RAVLT) {
-            this.RAVLTData = FSLaudosApp.testData.RAVLT.data;
             return FSLaudosApp.testData.RAVLT.getClassification(baremType, score);
         }
         console.error("Dados do RAVLT não carregados."); return { percentile: '-', classification: 'Erro' };

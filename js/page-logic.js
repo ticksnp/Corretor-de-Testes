@@ -1,6 +1,7 @@
 // js/page-logic.js
 
 // --- FUNÇÕES AUXILIARES GLOBAIS ---
+// (As funções auxiliares no início do seu arquivo permanecem as mesmas)
 FSLaudosApp.formatDateInput = (inputElement) => {
     if (!inputElement) return;
     let value = inputElement.value.replace(/\D/g, '');
@@ -55,7 +56,6 @@ FSLaudosApp.calculatePreciseAge = (dobString, appDateString) => {
     }
     return { years, months, days };
 };
-
 
 FSLaudosApp.calculateAgeInYearsAtDate = (dobString, appDateString) => {
     if (!dobString || !appDateString || !/^\d{2}\/\d{2}\/\d{4}$/.test(dobString) || !/^\d{2}\/\d{2}\/\d{4}$/.test(appDateString)) return null;
@@ -776,7 +776,7 @@ FSLaudosApp.pageLogic = (() => {
             
             loadConfig();
         },
-        'preenchimento-laudo': (laudoId) => {
+         'preenchimento-laudo': (laudoId) => {
             const db = FSLaudosApp.db;
             if (!db) { console.error("DB não está definido no Preenchimento de Laudo."); return; }
             
@@ -810,64 +810,85 @@ FSLaudosApp.pageLogic = (() => {
                 if (tabName === 'teste') {
                     content.innerHTML = FSLaudosApp.gerarHtmlDoFormulario(chaveTesteAtiva);
                     
-                    if (chaveTesteAtiva === 'SRS2EscolarMasc' || chaveTesteAtiva === 'SRS2EscolarFem') {
-                        const { SRS2Data } = FSLaudosApp.testData;
-                        
-                        const updateSrs2Calculations = () => {
-                             const pontos = {};
-                             const valores = {};
-
-                             for(let i = 1; i <= 65; i++) {
-                                const valorInput = document.getElementById(`srs2-q${i}-valor`);
-                                const pontosInput = document.getElementById(`srs2-q${i}-pontos`);
-                                const valor = parseInt(valorInput.value, 10);
-                                
-                                valores[`q${i}_valor`] = valorInput.value;
-
-                                if (valor >= 1 && valor <= 4) {
-                                    const isReverse = SRS2Data.reverseScoredItems.includes(i);
-                                    const srsScore = isReverse ? (4 - valor) : (valor - 1);
-                                    pontos[`q${i}_pontos`] = srsScore;
-                                    if (pontosInput) pontosInput.value = srsScore;
-                                } else {
-                                    pontos[`q${i}_pontos`] = '';
-                                    if (pontosInput) pontosInput.value = '';
-                                }
-                             }
-                             
-                             const rawScores = {};
-                             for (const subscale in SRS2Data.subscaleItems) {
-                                rawScores[subscale] = SRS2Data.subscaleItems[subscale].reduce((sum, itemNum) => sum + (parseInt(pontos[`q${itemNum}_pontos`],10) || 0), 0);
-                             }
-
-                             rawScores.comunicacaoInteracao = rawScores.percepcaoSocial + rawScores.cognicaoSocial + rawScores.comunicacaoSocial + rawScores.motivacaoSocial;
-                             rawScores.total = rawScores.comunicacaoInteracao + rawScores.padroesRepetitivos;
-
-                             formConfig.subscales.forEach(sub => {
-                                const rawScore = rawScores[sub.id] || 0;
-                                const tScore = baremos.getSrs2TScore(sub.id, rawScore);
-                                const classification = baremos.getSrs2Classification(tScore);
-
-                                document.getElementById(`srs2-raw-${sub.id}`).textContent = rawScore;
-                                document.getElementById(`srs2-tscore-${sub.id}`).textContent = tScore;
-                                document.getElementById(`srs2-class-${sub.id}`).textContent = classification;
-                             });
-                        };
-                        
-                        content.querySelector('.srs2-questions-grid').addEventListener('input', (e) => {
-                            if (e.target.classList.contains('srs2-item-valor')) {
-                                updateSrs2Calculations();
+                    // Lógica específica para WISC-IV
+                    if (chaveTesteAtiva === 'WiscIV') {
+                        const updateWiscCalculations = () => {
+                            const patientAge = FSLaudosApp.calculatePreciseAge(laudoDataAtual.pacienteNascimento, laudoDataAtual.dataAplicacao);
+                            if (!patientAge) {
+                                console.warn("Idade do paciente inválida para cálculo do WISC-IV");
+                                return; // Interrompe se a idade não puder ser calculada
                             }
-                        });
+
+                            const weightedScores = {};
+                            
+                            // 1. Calcular Pontos Ponderados para cada subteste
+                            formConfig.subtests.forEach(sub => {
+                                const rawInput = document.getElementById(`wisc-raw-${sub.id}`);
+                                const rawScore = rawInput ? rawInput.value : '';
+                                
+                                const result = baremos.getWiscWeightedScore(sub.id, rawScore, patientAge);
+                                
+                                document.getElementById(`wisc-pond-${sub.id}`).textContent = result.weighted;
+                                document.getElementById(`wisc-subclass-${sub.id}`).textContent = result.classification;
+
+                                if (result.weighted !== '') {
+                                    weightedScores[sub.id] = parseInt(result.weighted, 10);
+                                }
+                            });
+
+                            // 2. Calcular Somas e Pontos Compostos para Índices
+                            const mainSubtestsForSum = {
+                                compreensaoVerbal: ['semelhancas', 'vocabulario', 'compreensao'],
+                                organizacaoPerceptual: ['cubos', 'conceitosFigurativos', 'raciocinioMatricial'],
+                                memoriaOperacional: ['digitos', 'sequenciaNumerosLetras'],
+                                velocidadeProcessamento: ['codigo', 'procurarSimbolos']
+                            };
+
+                            formConfig.compositeScales.forEach(scale => {
+                                if (scale.id === 'qiTotal') return;
+
+                                const sum = (mainSubtestsForSum[scale.id] || [])
+                                    .reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
+                                
+                                document.getElementById(`wisc-sum-${scale.id}`).textContent = sum > 0 ? sum : '';
+
+                                const result = baremos.getWiscCompositeScore(scale.id, sum);
+                                document.getElementById(`wisc-comp-${scale.id}`).textContent = result.composite;
+                                document.getElementById(`wisc-perc-${scale.id}`).textContent = result.percentile;
+                                document.getElementById(`wisc-ci90-${scale.id}`).textContent = result.ci_90;
+                                document.getElementById(`wisc-ci95-${scale.id}`).textContent = result.ci_95;
+                                document.getElementById(`wisc-class-${scale.id}`).textContent = result.classification;
+                            });
+
+                            // 3. Calcular Soma e QI Total
+                             const mainSubtestsForQIT = [
+                                'semelhancas', 'vocabulario', 'compreensao',
+                                'cubos', 'conceitosFigurativos', 'raciocinioMatricial',
+                                'digitos', 'sequenciaNumerosLetras',
+                                'codigo', 'procurarSimbolos'
+                            ];
+                            const qiTotalSum = mainSubtestsForQIT.reduce((acc, subId) => acc + (weightedScores[subId] || 0), 0);
+
+                            document.getElementById('wisc-sum-qiTotal').textContent = qiTotalSum > 0 ? qiTotalSum : '';
+                            
+                            const qiResult = baremos.getWiscCompositeScore('qiTotal', qiTotalSum);
+                            document.getElementById('wisc-comp-qiTotal').textContent = qiResult.composite;
+                            document.getElementById('wisc-perc-qiTotal').textContent = qiResult.percentile;
+                            document.getElementById('wisc-ci90-qiTotal').textContent = qiResult.ci_90;
+                            document.getElementById('wisc-ci95-qiTotal').textContent = qiResult.ci_95;
+                            document.getElementById('wisc-class-qiTotal').textContent = qiResult.classification;
+                        };
 
                         const testData = laudoDataAtual.resultados?.[chaveTesteAtiva]?.pontos || {};
-                        for (let i = 1; i <= 65; i++) {
-                            const input = content.querySelector(`#srs2-q${i}-valor`);
-                            if (input && testData[`q${i}_valor`] !== undefined) {
-                                input.value = testData[`q${i}_valor`];
-                            }
-                        }
-                        updateSrs2Calculations();
+                        content.querySelectorAll('.wisc-raw-score').forEach(input => {
+                            const field = input.dataset.field;
+                            input.value = testData[field] ?? '';
+                            input.addEventListener('input', updateWiscCalculations);
+                        });
+                        
+                        // Executa o cálculo uma vez ao carregar para preencher com os dados salvos
+                        updateWiscCalculations(); 
+                    
 
                     } else if (chaveTesteAtiva === 'BPA2') {
                         const updateAgScoreAndClassification = () => {
@@ -1121,16 +1142,15 @@ FSLaudosApp.pageLogic = (() => {
                         }
                     }
                     
-                    const saveButton = content.querySelector(`#salvar-parcial-${chaveTeste}`);
+                    const saveButton = content.querySelector(`#salvar-parcial-${chaveTesteAtiva}`);
                     if (saveButton) {
                         saveButton.addEventListener('click', () => {
                             const dataToSave = {};
                             const inputs = content.querySelectorAll('.test-input');
                             inputs.forEach(input => {
                                 if (!input.disabled) {
-                                    const value = input.type === 'number' ? (input.valueAsNumber || null) : input.value;
-                                    // Evita salvar NaN, que não é suportado pelo Firestore
-                                    dataToSave[input.dataset.field] = isNaN(value) ? null : value;
+                                    const value = input.type === 'number' ? (input.value === '' ? null : Number(input.value)) : input.value;
+                                    dataToSave[input.dataset.field] = value;
                                 }
                             });
                             
